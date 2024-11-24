@@ -3,31 +3,30 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from 'fast-json-stable-stringify';
+import stringify from "fast-json-stable-stringify";
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
 };
 
-export const isIframe = (): boolean => {
-  //http://stackoverflow.com/questions/326069/how-to-identify-if-a-webpage-is-being-loaded-inside-an-iframe-or-directly-into-t
-  try {
-    return window !== window.top;
-  } catch (ignored) {
-    return false;
-  }
-};
-
 export const blobToBase64String = (blob: Record<string, any>) => {
-  return btoa(encodeURIComponent(stringify(blob)));
+  return stringToBase64String(stringify(blob));
 };
 
 export const blobFromBase64String = (value: string | undefined) => {
   if (value && value.length > 0) {
-    const blob = JSON.parse(decodeURIComponent(atob(value)));
+    const blob = JSON.parse(stringFromBase64String(value));
     return blob;
   }
   return undefined;
+};
+
+export const stringToBase64String = (value: string) :string => {
+  return btoa(encodeURIComponent(value));
+};
+
+export const stringFromBase64String = (value: string) :string => {
+  return decodeURIComponent(atob(value));
 };
 
 // Get everything after # then after ?
@@ -87,48 +86,12 @@ export const getHashParamValue = (
   return hashParams[key];
 };
 
-export const getHashParamValueJson = <T>(
-  url: string,
-  key: string
-): T | undefined => {
-  const valueString = getHashParamValue(url, key);
-  if (valueString && valueString !== "") {
-    const value = blobFromBase64String(valueString);
-    return value;
-  }
-  return;
-};
-
 export const getHashParamFromWindow = (key: string): string | undefined => {
   return getHashParamsFromWindow()[1][key];
 };
 
 export const getHashParamsFromWindow = (): [string, Record<string, string>] => {
   return getUrlHashParams(window.location.href);
-};
-
-export const getHashParamValueDecodedBase64FromWindow = (
-  key: string
-): string | undefined => {
-  return getHashParamValueDecodedBase64(window.location.href, key);
-};
-
-export const getHashParamValueJsonFromWindow = <T>(
-  key: string
-): T | undefined => {
-  return getHashParamValueJson(window.location.href, key);
-};
-
-export const getHashParamValueDecodedBase64 = (
-  url: string,
-  key: string
-): string | undefined => {
-  const valueString = getHashParamValue(url, key);
-  if (valueString && valueString !== "") {
-    const value = atob(valueString);
-    return value;
-  }
-  return;
 };
 
 export const setHashParamInWindow = (
@@ -164,14 +127,6 @@ export const setHashParamInWindow = (
   }
 };
 
-export const setHashParamJsonInWindow = <T>(
-  key: string,
-  value: T | undefined,
-  opts?: SetHashParamOpts
-) => {
-  const valueString = value ? blobToBase64String(value) : undefined;
-  setHashParamInWindow(key, valueString, opts);
-};
 
 // returns hash string
 export const setHashValueInHashString = (
@@ -211,15 +166,6 @@ export const setHashValueInHashString = (
   return `${preHashParamString}?${hashStringNew}`;
 };
 
-export const setHashValueJsonInHashString = <T>(
-  hash: string,
-  key: string,
-  value: T | undefined
-) => {
-  const valueString = value ? blobToBase64String(value) : undefined;
-  return setHashValueInHashString(hash, key, valueString);
-};
-
 // returns URL string
 export const setHashValueInUrl = (
   url: string,
@@ -232,13 +178,176 @@ export const setHashValueInUrl = (
   return urlBlob.href;
 };
 
-// returns URL string
-export const setHashValueJsonInUrl = <T>(
+/* json */
+
+export const setHashParamValueJsonInUrl = <T>(
   url: string,
   key: string,
   value: T | undefined
-) => {
+) :string => {
   const urlBlob = new URL(url);
   urlBlob.hash = setHashValueJsonInHashString(urlBlob.hash, key, value);
   return urlBlob.href;
+};
+
+export const getHashParamValueJsonFromUrl = <T>(
+  url: string,
+  key: string
+): T | undefined => {
+  const valueString = getHashParamValue(url, key);
+  if (valueString && valueString !== "") {
+    const value = blobFromBase64String(valueString);
+    return value;
+  }
+  return;
+};
+
+export const setHashParamValueJsonInWindow =<T>(
+  key: string,
+  value: T | undefined,
+  opts?: SetHashParamOpts
+) :void => {
+  const valueString = value ? blobToBase64String(value) : undefined;
+  setHashParamInWindow(key, valueString, opts);
+};
+
+export const getHashParamValueJsonFromWindow = <T>(
+  key: string
+): T | undefined => {
+  return getHashParamValueJsonFromUrl(window.location.href, key);
+};
+
+export const setHashValueJsonInHashString = <T>(
+  hash: string,
+  key: string,
+  value: T | undefined
+) => {
+  const valueString = value ? blobToBase64String(value) : undefined;
+  return setHashValueInHashString(hash, key, valueString);
+};
+
+/* float */
+
+export const setHashValueFloatInUrl = (
+  url: string,
+  key: string,
+  value: number | undefined
+) :string => {
+  return setHashValueInUrl(url, key, value ? value.toString() : undefined);
+};
+
+export const getHashParamValueFloatFromUrl = (
+  url: string,
+  key: string
+): number | undefined => {
+  const hashParamString = getHashParamValue(url, key);
+  return hashParamString ? parseFloat(hashParamString) : undefined;
+};
+
+export const setHashValueFloatInWindow = (
+  key: string,
+  value: number | undefined,
+  opts?: SetHashParamOpts
+) :void => {
+  setHashParamInWindow(key, value !== undefined && value !== null ? value.toString() : undefined, opts);
+};
+
+export const getHashParamValueFloatFromWindow = (key: string): number | undefined => {
+  return getHashParamValueFloatFromUrl(window.location.href, key);
+};
+
+/* integer */
+
+export const setHashValueIntInUrl = (
+  url: string,
+  key: string,
+  value: number | undefined
+) :string => {
+  return setHashValueInUrl(url, key, value !== undefined && value !== null ? value.toString() : undefined);
+};
+
+export const getHashParamValueIntFromUrl = (
+  url: string,
+  key: string
+): number | undefined => {
+  const hashParamString = getHashParamValue(url, key);
+  return hashParamString ? parseInt(hashParamString) : undefined;
+};
+
+export const setHashValueIntInWindow = (
+  key: string,
+  value: number | undefined,
+  opts?: SetHashParamOpts
+) :void => {
+  setHashValueFloatInWindow(key, value, opts);
+};
+
+export const getHashParamValueIntFromWindow = (key: string): number | undefined => {
+  return getHashParamValueIntFromUrl(window.location.href, key);
+};
+
+
+/* boolean */
+
+export const setHashValueBooleanInUrl = (
+  url: string,
+  key: string,
+  value: boolean | undefined
+) :string => {
+  return setHashValueInUrl(url, key, value ? "true" : undefined);
+};
+
+export const getHashParamValueBooleanFromUrl = (
+  url: string,
+  key: string
+): boolean | undefined => {
+  const hashParamString = getHashParamValue(url, key);
+  return hashParamString === "true" ? true : false;
+};
+
+export const setHashValueBooleanInWindow = (
+  key: string,
+  value: number | undefined,
+  opts?: SetHashParamOpts
+) :void => {
+  setHashParamInWindow(key, value ? "true" : undefined, opts);
+};
+
+export const getHashParamValueBooleanFromWindow = (key: string): boolean | undefined => {
+  return getHashParamValueBooleanFromUrl(window.location.href, key);
+};
+
+
+/* HashValueBase64 */
+
+export const setHashValueBase64EncodedInUrl = (
+  url: string,
+  key: string,
+  value: string | undefined
+) :string => {
+  return setHashValueInUrl(url, key,
+    value === null || value === undefined ? undefined : stringToBase64String(value));
+};
+
+export const getHashParamValueBase64DecodedFromUrl = (
+  url: string,
+  key: string
+): string | undefined => {
+  const valueString = getHashParamValue(url, key);
+  return valueString && valueString !== "" ? stringFromBase64String(valueString) : undefined;
+};
+
+export const setHashValueBase64EncodedInWindow = (
+  key: string,
+  value: string | undefined,
+  opts?: SetHashParamOpts
+) :void => {
+  const encodedValue = value === null || value === undefined ? undefined : stringToBase64String(value);
+  setHashParamInWindow(key, encodedValue, opts);
+};
+
+export const getHashParamValueBase64DecodedFromWindow = (
+  key: string
+): string | undefined => {
+  return getHashParamValueBase64DecodedFromUrl(window.location.href, key);
 };

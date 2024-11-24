@@ -31,35 +31,24 @@ magenta                            := "\\e[35m"
 grey                               := "\\e[90m"
 
 # If not in docker, get inside
-_help:
-    #!/usr/bin/env bash
-    # exit when any command fails
-    set -euo pipefail
-    if [ -f /.dockerenv ]; then
-        echo -e ""
-        just --list --unsorted --list-heading $'🌱 Commands:\n\n'
-        echo -e ""
-        echo -e "    Github  URL 🔗 {{green}}$(cat package.json | jq -r '.repository.url'){{normal}}"
-        echo -e "    Publish URL 🔗 {{green}}https://www.npmjs.com/package/$(cat package.json | jq -r '.name'){{normal}}"
-        echo -e "    Develop URL 🔗 {{green}}https://{{APP_FQDN}}:{{APP_PORT}}/{{normal}}"
-        echo -e ""
-    else
-        just _docker;
-    fi
+@_help:
+    echo -e ""
+    just --list --unsorted --list-heading $'🌱 Commands:\n\n'
+    echo -e ""
+    echo -e "    Github  URL 🔗 {{green}}$(cat package.json | jq -r '.repository.url'){{normal}}"
+    echo -e "    Publish URL 🔗 {{green}}https://www.npmjs.com/package/$(cat package.json | jq -r '.name'){{normal}}"
+    echo -e "    Develop URL 🔗 {{green}}https://{{APP_FQDN}}:{{APP_PORT}}/{{normal}}"
+    echo -e ""
 
 # Run the dev server. Opens the web app in browser.
-dev:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ -f /.dockerenv ]; then
-        just _dev;
-    else
-        just _mkcert;
-        open https://${APP_FQDN}:${APP_PORT};
-        just _docker just _dev;
-    fi
+@dev: _dev
+    open https://${APP_FQDN}:${APP_PORT};
+    just _dev
 
-_dev: _ensure_npm_modules (_tsc "--build")
+# Compile check typescript
+check: (_tsc "--build")
+
+_dev: _mkcert _ensure_npm_modules (_tsc "--build")
     #!/usr/bin/env bash
     set -euo pipefail
     APP_ORIGIN=https://${APP_FQDN}:${APP_PORT}
@@ -178,14 +167,6 @@ _tsc +args="": _ensure_npm_modules
 # DEV: generate TLS certs for HTTPS over localhost https://blog.filippo.io/mkcert-valid-https-certificates-for-localhost/
 _mkcert:
     #!/usr/bin/env bash
-    if [ -n "$CI" ]; then
-        echo "CI=$CI ∴ skipping mkcert"
-        exit 0
-    fi
-    if [ -f /.dockerenv ]; then \
-        echo "Inside docker context, assuming mkcert has been run on the host"
-        exit 0;
-    fi
     if ! command -v mkcert &> /dev/null; then echo "💥 {{bold}}mkcert{{normal}}💥 is not installed (manual.md#host-requirements): https://github.com/FiloSottile/mkcert"; exit 1; fi
     if [ ! -f .certs/{{APP_FQDN}}-key.pem ]; then
         mkdir -p .certs/ ;
@@ -207,54 +188,6 @@ _mkcert:
 # vite builder commands
 @_vite +args="":
     {{vite}} {{args}}
-
-####################################################################################
-# Ensure docker image for local and CI operations
-# Hoist into a docker container with all require CLI tools installed
-####################################################################################
-# Hoist into a docker container with all require CLI tools installed
-@_docker +args="bash": _build_docker
-    echo -e "🌱 Entering docker context: {{bold}}{{DOCKER_IMAGE_PREFIX}}:{{DOCKER_TAG}} from <repo/>Dockerfile 🚪🚪{{normal}}"
-    mkdir -p {{ROOT}}/.tmp
-    touch {{ROOT}}/.tmp/.bash_history
-    touch {{ROOT}}/.tmp/.aliases
-    if [ -f ~/.aliases ]; then cp ~/.aliases {{ROOT}}/.tmp/.aliases; fi
-    export WORKSPACE=/repo && \
-        docker run \
-            --rm \
-            -ti \
-            -e DOCKER_IMAGE_PREFIX=${DOCKER_IMAGE_PREFIX} \
-            -e PS1="<$(basename $PWD)/> " \
-            -e PROMPT="<%/% > " \
-            -e DOCKER_IMAGE_PREFIX={{DOCKER_IMAGE_PREFIX}} \
-            -e HISTFILE=$WORKSPACE/.tmp/.bash_history \
-            -e WORKSPACE=$WORKSPACE \
-            -v {{ROOT}}:$WORKSPACE \
-            $(if [ -d $HOME/.gitconfig ]; then echo "-v $HOME/.gitconfig:/root/.gitconfig"; else echo ""; fi) \
-            $(if [ -d $HOME/.ssh ]; then echo "-v $HOME/.ssh:/root/.ssh"; else echo ""; fi) \
-            -p {{APP_PORT}}:{{APP_PORT}} \
-            --add-host {{APP_FQDN}}:127.0.0.1 \
-            -w $WORKSPACE \
-            {{DOCKER_IMAGE_PREFIX}}:{{DOCKER_TAG}} {{args}} || true
-
-# If the ./app docker image in not build, then build it
-_build_docker:
-    #!/usr/bin/env bash
-    set -euo pipefail
-
-    if [[ "$(docker images -q {{DOCKER_IMAGE_PREFIX}}:{{DOCKER_TAG}} 2> /dev/null)" == "" ]]; then
-        echo -e "🌱🌱  ➡ {{bold}}Building docker image ...{{normal}} 🚪🚪 ";
-        echo -e "🌱 </> {{bold}}docker build -t {{DOCKER_IMAGE_PREFIX}}:{{DOCKER_TAG}} . {{normal}}🚪 ";
-        docker build -t {{DOCKER_IMAGE_PREFIX}}:{{DOCKER_TAG}} . ;
-    fi
-
-_ensure_inside_docker:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    if [ ! -f /.dockerenv ]; then
-        echo -e "🌵🔥🌵🔥🌵🔥🌵 Not inside a docker container. First run the command: 'just' 🌵🔥🌵🔥🌵🔥🌵"
-        exit 1
-    fi
 
 @_ensureGitPorcelain:
     if [ ! -z "$(git status --untracked-files=no --porcelain)" ]; then \
