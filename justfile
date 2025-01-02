@@ -50,9 +50,7 @@ watch: _ensure_node_modules
 @_tsc +args="":
     {{tsc}} {{args}}
 
-# Run tests
-test:
-    just ../worker/test
+@test: (_tsc "--noEmit")
 
 # Develop:
 #   1. just dev
