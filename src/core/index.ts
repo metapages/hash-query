@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from "fast-json-stable-stringify";
+import stringify from 'fast-json-stable-stringify';
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -70,7 +70,7 @@ export const getUrlHashParamsFromHashString = (
 
   Object.keys(hashObject).forEach((key) => {
     try {
-      hashObject[key] = decodeURI(hashObject[key]);
+      hashObject[key] = decodeURIComponent(hashObject[key]);
     } catch (ignored) {
       hashObject[key] = hashObject[key];
     }
@@ -159,7 +159,7 @@ export const setHashParamValueInHashString = (
   keys.sort();
   const hashStringNew = keys
     .map((key, i) => {
-      return `${key}=${encodeURI(hashObject[key])}`;
+      return `${key}=${encodeURIComponent(hashObject[key])}`;
     })
     .join("&");
   // replace after the ? but keep before that
