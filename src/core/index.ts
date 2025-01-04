@@ -22,11 +22,11 @@ export const blobFromBase64String = (value: string | undefined) => {
 };
 
 export const stringToBase64String = (value: string) :string => {
-  return btoa(value);
+  return btoa(encodeURIComponent(value));
 };
 
 export const stringFromBase64String = (value: string) :string => {
-  return atob(value);
+  return decodeURIComponent(atob(value));
 };
 
 // Get everything after # then after ?
