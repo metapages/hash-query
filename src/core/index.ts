@@ -26,6 +26,10 @@ export const stringToBase64String = (value: string) :string => {
 };
 
 export const stringFromBase64String = (value: string) :string => {
+  https://github.com/metapages/metaframe-js/issues/11
+  while (value.endsWith("%3D")) {
+    value = value.slice(0, -3);
+  }
   return decodeURIComponent(atob(value));
 };
 
