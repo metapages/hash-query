@@ -11,34 +11,29 @@ import { SetHashParamOpts } from '../core';
  * Hook for getting/setting a hash param boolean (safely encoded)
  */
 export const useHashParamBoolean = (
-  key: string,
-  defaultValue?: boolean
+  key: string
 ): [
   boolean | undefined,
   (v: boolean | undefined, opts?: SetHashParamOpts) => void
 ] => {
   const [hashParamString, setHashParamString] = useHashParam(key);
-  const [hashBoolean, setHashBoolean] = useState<boolean>(!!defaultValue);
+  const [hashBoolean, setHashBoolean] = useState<boolean>(hashParamString === "false" ? false : true);
 
   // if the hash string value changes
   useEffect(() => {
-    if (!!defaultValue) {
-      setHashBoolean(hashParamString === "false" ? false : true); 
-    } else {
-      setHashBoolean(hashParamString === "true" ? true : false);
-    }
-  }, [defaultValue, key, hashParamString, setHashBoolean]);
+    setHashBoolean(hashParamString === "true" ? true : false);
+  }, [key, hashParamString, setHashBoolean]);
 
   const setBoolean = useCallback(
     (val: boolean | undefined, opts?: SetHashParamOpts) => {
       val = !!val;
-      if (val === !!defaultValue) {
-        setHashParamString(undefined, opts);
+      if (val) {
+        setHashParamString("true", opts);
       } else {
-        setHashParamString(defaultValue ? "false" : "true", opts);
+        setHashParamString(undefined, opts);
       }
     },
-    [defaultValue, setHashParamString]
+    [setHashParamString]
   );
 
   return [hashBoolean, setBoolean];
