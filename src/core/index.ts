@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from 'fast-json-stable-stringify';
+import stringify from "fast-json-stable-stringify";
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -21,13 +21,13 @@ export const blobFromBase64String = (value: string | undefined) => {
   return undefined;
 };
 
-export const stringToBase64String = (value: string) :string => {
+export const stringToBase64String = (value: string): string => {
   return btoa(encodeURIComponent(value));
 };
 
-export const stringFromBase64String = (value: string) :string => {
-  https://github.com/metapages/metaframe-js/issues/11
-  while (value.endsWith("%3D")) {
+export const stringFromBase64String = (value: string): string => {
+  //github.com/metapages/metaframe-js/issues/11
+  https: while (value.endsWith("%3D")) {
     value = value.slice(0, -3);
   }
   return decodeURIComponent(atob(value));
@@ -131,7 +131,6 @@ export const setHashParamInWindow = (
   }
 };
 
-
 // returns hash string
 export const setHashParamValueInHashString = (
   hash: string,
@@ -188,7 +187,7 @@ export const setHashParamValueJsonInUrl = <T>(
   url: string,
   key: string,
   value: T | undefined
-) :string => {
+): string => {
   const urlBlob = new URL(url);
   urlBlob.hash = setHashParamValueJsonInHashString(urlBlob.hash, key, value);
   return urlBlob.href;
@@ -206,11 +205,24 @@ export const getHashParamValueJsonFromUrl = <T>(
   return;
 };
 
-export const setHashParamValueJsonInWindow =<T>(
+export const getHashParamValueJsonFromHashString = <T>(
+  hash: string,
+  key: string
+): T | undefined => {
+  const [_, hashParams] = getUrlHashParamsFromHashString(hash);
+  const valueString = hashParams[key];
+  if (valueString && valueString !== "") {
+    const value = blobFromBase64String(valueString);
+    return value;
+  }
+  return;
+};
+
+export const setHashParamValueJsonInWindow = <T>(
   key: string,
   value: T | undefined,
   opts?: SetHashParamOpts
-) :void => {
+): void => {
   const valueString = value ? blobToBase64String(value) : undefined;
   setHashParamInWindow(key, valueString, opts);
 };
@@ -236,7 +248,7 @@ export const setHashParamValueFloatInUrl = (
   url: string,
   key: string,
   value: number | undefined
-) :string => {
+): string => {
   return setHashParamValueInUrl(url, key, value ? value.toString() : undefined);
 };
 
@@ -252,11 +264,17 @@ export const setHashParamValueFloatInWindow = (
   key: string,
   value: number | undefined,
   opts?: SetHashParamOpts
-) :void => {
-  setHashParamInWindow(key, value !== undefined && value !== null ? value.toString() : undefined, opts);
+): void => {
+  setHashParamInWindow(
+    key,
+    value !== undefined && value !== null ? value.toString() : undefined,
+    opts
+  );
 };
 
-export const getHashParamValueFloatFromWindow = (key: string): number | undefined => {
+export const getHashParamValueFloatFromWindow = (
+  key: string
+): number | undefined => {
   return getHashParamValueFloatFromUrl(window.location.href, key);
 };
 
@@ -266,8 +284,12 @@ export const setHashParamValueIntInUrl = (
   url: string,
   key: string,
   value: number | undefined
-) :string => {
-  return setHashParamValueInUrl(url, key, value !== undefined && value !== null ? value.toString() : undefined);
+): string => {
+  return setHashParamValueInUrl(
+    url,
+    key,
+    value !== undefined && value !== null ? value.toString() : undefined
+  );
 };
 
 export const getHashParamValueIntFromUrl = (
@@ -282,14 +304,15 @@ export const setHashParamValueIntInWindow = (
   key: string,
   value: number | undefined,
   opts?: SetHashParamOpts
-) :void => {
+): void => {
   setHashParamValueFloatInWindow(key, value, opts);
 };
 
-export const getHashParamValueIntFromWindow = (key: string): number | undefined => {
+export const getHashParamValueIntFromWindow = (
+  key: string
+): number | undefined => {
   return getHashParamValueIntFromUrl(window.location.href, key);
 };
-
 
 /* boolean */
 
@@ -297,7 +320,7 @@ export const setHashParamValueBooleanInUrl = (
   url: string,
   key: string,
   value: boolean | undefined
-) :string => {
+): string => {
   return setHashParamValueInUrl(url, key, value ? "true" : undefined);
 };
 
@@ -313,14 +336,15 @@ export const setHashParamValueBooleanInWindow = (
   key: string,
   value: boolean | undefined,
   opts?: SetHashParamOpts
-) :void => {
+): void => {
   setHashParamInWindow(key, value ? "true" : undefined, opts);
 };
 
-export const getHashParamValueBooleanFromWindow = (key: string): boolean | undefined => {
+export const getHashParamValueBooleanFromWindow = (
+  key: string
+): boolean | undefined => {
   return getHashParamValueBooleanFromUrl(window.location.href, key);
 };
-
 
 /* HashValueBase64 */
 
@@ -328,9 +352,14 @@ export const setHashParamValueBase64EncodedInUrl = (
   url: string,
   key: string,
   value: string | undefined
-) :string => {
-  return setHashParamValueInUrl(url, key,
-    value === null || value === undefined ? undefined : stringToBase64String(value));
+): string => {
+  return setHashParamValueInUrl(
+    url,
+    key,
+    value === null || value === undefined
+      ? undefined
+      : stringToBase64String(value)
+  );
 };
 
 export const getHashParamValueBase64DecodedFromUrl = (
@@ -338,15 +367,20 @@ export const getHashParamValueBase64DecodedFromUrl = (
   key: string
 ): string | undefined => {
   const valueString = getHashParamValue(url, key);
-  return valueString && valueString !== "" ? stringFromBase64String(valueString) : undefined;
+  return valueString && valueString !== ""
+    ? stringFromBase64String(valueString)
+    : undefined;
 };
 
 export const setHashParamValueBase64EncodedInWindow = (
   key: string,
   value: string | undefined,
   opts?: SetHashParamOpts
-) :void => {
-  const encodedValue = value === null || value === undefined ? undefined : stringToBase64String(value);
+): void => {
+  const encodedValue =
+    value === null || value === undefined
+      ? undefined
+      : stringToBase64String(value);
   setHashParamInWindow(key, encodedValue, opts);
 };
 
@@ -363,10 +397,6 @@ export const deleteHashParamFromWindow = (
   setHashParamInWindow(key, undefined, opts);
 };
 
-export const deleteHashParamFromUrl = (
-  url: string,
-  key: string
-): string => {
+export const deleteHashParamFromUrl = (url: string, key: string): string => {
   return setHashParamValueInUrl(url, key, undefined);
 };
-
