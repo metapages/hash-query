@@ -17,7 +17,7 @@ npm i @metapages/hash-query
 Use the hook in your component:
 
 ```typescript
-import { useHashParamJson } from "@metapages/hash-query";
+import { useHashParamJson } from "@metapages/hash-query/react-hooks";
 
 ...
 
@@ -60,7 +60,7 @@ useHashParamBoolean,
 useHashParamFloat,
 useHashParamInt,
 useHashParamJson,
-} from "@metapages/hash-query";
+} from "@metapages/hash-query/react-hooks";
 
 ```
 
