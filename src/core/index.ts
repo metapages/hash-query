@@ -35,9 +35,9 @@ export const stringFromBase64String = (value: string): string => {
 
 // Get everything after # then after ?
 export const getUrlHashParams = (
-  url: string
+  url: string | URL
 ): [string, Record<string, string>] => {
-  const urlBlob = new URL(url);
+  const urlBlob = url instanceof URL ? url : new URL(url);
   return getUrlHashParamsFromHashString(urlBlob.hash);
 };
 
@@ -83,7 +83,7 @@ export const getUrlHashParamsFromHashString = (
 };
 
 export const getHashParamValue = (
-  url: string,
+  url: string | URL,
   key: string
 ): string | undefined => {
   const [_, hashParams] = getUrlHashParams(url);
@@ -171,11 +171,11 @@ export const setHashParamValueInHashString = (
 
 // returns URL string
 export const setHashParamValueInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: string | undefined
 ) => {
-  const urlBlob = new URL(url);
+  const urlBlob = url instanceof URL ? url : new URL(url);
   const newHash = setHashParamValueInHashString(urlBlob.hash, key, value);
   urlBlob.hash = newHash;
   return urlBlob.href;
@@ -184,17 +184,17 @@ export const setHashParamValueInUrl = (
 /* json */
 
 export const setHashParamValueJsonInUrl = <T>(
-  url: string,
+  url: string | URL,
   key: string,
   value: T | undefined
 ): string => {
-  const urlBlob = new URL(url);
+  const urlBlob = url instanceof URL ? url : new URL(url);
   urlBlob.hash = setHashParamValueJsonInHashString(urlBlob.hash, key, value);
   return urlBlob.href;
 };
 
 export const getHashParamValueJsonFromUrl = <T>(
-  url: string,
+  url: string | URL,
   key: string
 ): T | undefined => {
   const valueString = getHashParamValue(url, key);
@@ -253,7 +253,7 @@ export const setHashParamValueFloatInUrl = (
 };
 
 export const getHashParamValueFloatFromUrl = (
-  url: string,
+  url: string | URL,
   key: string
 ): number | undefined => {
   const hashParamString = getHashParamValue(url, key);
@@ -293,7 +293,7 @@ export const setHashParamValueIntInUrl = (
 };
 
 export const getHashParamValueIntFromUrl = (
-  url: string,
+  url: string | URL,
   key: string
 ): number | undefined => {
   const hashParamString = getHashParamValue(url, key);
@@ -325,7 +325,7 @@ export const setHashParamValueBooleanInUrl = (
 };
 
 export const getHashParamValueBooleanFromUrl = (
-  url: string,
+  url: string | URL,
   key: string
 ): boolean | undefined => {
   const hashParamString = getHashParamValue(url, key);
@@ -363,7 +363,7 @@ export const setHashParamValueBase64EncodedInUrl = (
 };
 
 export const getHashParamValueBase64DecodedFromUrl = (
-  url: string,
+  url: string | URL,
   key: string
 ): string | undefined => {
   const valueString = getHashParamValue(url, key);
@@ -397,6 +397,9 @@ export const deleteHashParamFromWindow = (
   setHashParamInWindow(key, undefined, opts);
 };
 
-export const deleteHashParamFromUrl = (url: string, key: string): string => {
+export const deleteHashParamFromUrl = (
+  url: string | URL,
+  key: string
+): string => {
   return setHashParamValueInUrl(url, key, undefined);
 };
