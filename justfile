@@ -60,7 +60,7 @@ watch: _ensure_node_modules
 dev: _ensure_node_modules watch
 
 # typescript check 
-@check: (_tsc "--build")
+@check: _ensure_node_modules (_tsc "--build")
     echo -e "✅ {{green}}TypeScript{{normal}} check passed"
 
 # npm link the package in dist for local development. In the other project: 'npm link @metapages/metapage'

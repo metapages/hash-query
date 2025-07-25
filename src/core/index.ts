@@ -166,7 +166,8 @@ export const setHashParamValueInHashString = (
     })
     .join("&");
   // replace after the ? but keep before that
-  return `${preHashParamString}?${hashStringNew}`;
+  
+  return `${preHashParamString}${preHashParamString ? "?" : ""}${hashStringNew}`;
 };
 
 // returns URL string
@@ -178,7 +179,11 @@ export const setHashParamValueInUrl = (
   const urlBlob = url instanceof URL ? url : new URL(url);
   const newHash = setHashParamValueInHashString(urlBlob.hash, key, value);
   urlBlob.hash = newHash;
-  return urlBlob.href;
+  let finalUrl = urlBlob.href;
+  if (finalUrl.endsWith("#?")) {
+    finalUrl = finalUrl.slice(0, -2);
+  }
+  return finalUrl;
 };
 
 /* json */
@@ -190,7 +195,11 @@ export const setHashParamValueJsonInUrl = <T>(
 ): string => {
   const urlBlob = url instanceof URL ? url : new URL(url);
   urlBlob.hash = setHashParamValueJsonInHashString(urlBlob.hash, key, value);
-  return urlBlob.href;
+  let finalUrl = urlBlob.href;
+  if (finalUrl.endsWith("#?")) {
+    finalUrl = finalUrl.slice(0, -2);
+  }
+  return finalUrl;
 };
 
 export const getHashParamValueJsonFromUrl = <T>(
