@@ -103,7 +103,8 @@ publish: _require_NPM_TOKEN _ensure_node_modules
 unpublish version:
     @echo "❗ If this fails: you cannot use .npmrc or NPM_TOKEN, you must 'npm login' 🤷‍♀️"
     npm unpublish {{NPM_MODULE}}@{{version}}
-
+    npm deprecate {{NPM_MODULE}}@{{version}} "Unpublished"
+    
 # https://docs.npmjs.com/cli/v7/commands/npm-deprecate
 module_deprecate version +message:
     npm deprecate {{NPM_MODULE}}@{{version}} "{{message}}"
