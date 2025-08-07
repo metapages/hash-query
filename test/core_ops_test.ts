@@ -17,7 +17,7 @@ Deno.test({
       testUrl,
       "hashkey1",
       "hashvalue1-replaced"
-    );
+    ).href;
     assertEquals(
       resultUrl,
       "https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
@@ -34,7 +34,7 @@ Deno.test({
       testUrl,
       "hashkey1",
       "hashvalue1-replaced"
-    );
+    ).href;
     assertEquals(
       resultUrl,
       "https://foo.com/?key1=val1&key2=val2#?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
@@ -51,7 +51,7 @@ Deno.test({
       testUrl,
       "hashkey1",
       "hashvalue1-replaced"
-    );
+    ).href;
     assertEquals(
       resultUrl,
       "https://foo.com/?key1=val1&key2=val2#?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
@@ -68,7 +68,7 @@ Deno.test({
       testUrl,
       "hashkey1",
       "hashvalue1-replaced"
-    );
+    ).href;
     assertEquals(
       resultUrl,
       "https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
@@ -83,7 +83,7 @@ Deno.test({
       "https://foo.com/?key1=val1&key2=val2#?hashkey1=hashvalue1&hashkey2=hashvalue2";
     let resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
     resultUrl = setHashParamValueInUrl(resultUrl, "hashkey2", undefined);
-    assertEquals(resultUrl, "https://foo.com/?key1=val1&key2=val2");
+    assertEquals(resultUrl.href, "https://foo.com/?key1=val1&key2=val2");
   },
 });
 
@@ -93,7 +93,7 @@ Deno.test({
     const testUrl = "https://foo.com/";
     let resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
     resultUrl = setHashParamValueInUrl(resultUrl, "hashkey2", undefined);
-    assertEquals(resultUrl, "https://foo.com/");
+    assertEquals(resultUrl.href, "https://foo.com/");
   },
 });
 
@@ -105,7 +105,7 @@ Deno.test({
     let resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
     resultUrl = setHashParamValueInUrl(resultUrl, "hashkey2", undefined);
     assertEquals(
-      resultUrl,
+      resultUrl.href,
       "https://foo.com/?key1=val1&key2=val2#prehashthing"
     );
   },
@@ -118,7 +118,7 @@ Deno.test({
       "https://foo.com/#prehashthing?hashkey1=hashvalue1&hashkey2=hashvalue2";
     let resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
     resultUrl = setHashParamValueInUrl(resultUrl, "hashkey2", undefined);
-    assertEquals(resultUrl, "https://foo.com/#prehashthing");
+    assertEquals(resultUrl.href, "https://foo.com/#prehashthing");
   },
 });
 
@@ -130,7 +130,7 @@ Deno.test({
     const resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
 
     assertEquals(
-      resultUrl,
+      resultUrl.href,
       "https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey2=hashvalue2"
     );
   },
@@ -144,7 +144,7 @@ Deno.test({
     const resultUrl = setHashParamValueInUrl(testUrl, "hashkey1", undefined);
 
     assertEquals(
-      resultUrl,
+      resultUrl.href,
       "https://foo.com/?key1=val1&key2=val2#?hashkey2=hashvalue2"
     );
   },
