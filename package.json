@@ -1,6 +1,6 @@
 {
   "name": "@metapages/hash-query",
-  "version": "0.8.10",
+  "version": "0.8.11",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metapages/hash-query.git"
@@ -30,8 +30,12 @@
   },
   "typesVersions": {
     "*": {
-      "*": ["./dist/core/index.d.ts"],
-      "react-hooks": ["./dist/react-hooks/index.d.ts"]
+      "*": [
+        "./dist/core/index.d.ts"
+      ],
+      "react-hooks": [
+        "./dist/react-hooks/index.d.ts"
+      ]
     }
   },
   "files": [
