@@ -9,10 +9,9 @@ on:
   push:
     # only non-main (and non-master) branches
     branches:
-      # - "**"
-      # - "!main"
-      # - "!master"
-      - tests
+      - "**"
+      - "!main"
+      - "!master"
 
 jobs:
   test:

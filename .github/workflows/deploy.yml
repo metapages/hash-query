@@ -5,7 +5,7 @@ name: Deno deploy api+browser
 on:
   push:
     branches:
-      - "tests"
+      - "main"
 
 jobs:
   deploy:
