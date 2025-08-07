@@ -1,11 +1,7 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { SetHashParamOpts } from '../core';
-import { useHashParam } from './useHashParam';
+import { SetHashParamOpts } from "../core";
+import { useHashParam } from "./useHashParam";
 
 /**
  * Hook for getting/setting a hash param boolean (safely encoded)
@@ -17,7 +13,9 @@ export const useHashParamBoolean = (
   (v: boolean | undefined, opts?: SetHashParamOpts) => void
 ] => {
   const [hashParamString, setHashParamString] = useHashParam(key);
-  const [hashBoolean, setHashBoolean] = useState<boolean>(hashParamString === "true" ? true : false);
+  const [hashBoolean, setHashBoolean] = useState<boolean>(
+    hashParamString === "true" ? true : false
+  );
 
   // if the hash string value changes
   useEffect(() => {

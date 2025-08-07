@@ -66,6 +66,23 @@ useHashParamJson,
 
 Usage is the same as the JSON example above (get/set value)
 
+### Setting multiple hash parameters at once:
+
+```typescript
+import { setHashParamsInUrl } from "@metapages/hash-query";
+
+const url = "https://example.com/page#section";
+const params = {
+  theme: "dark",
+  language: "en",
+  view: "grid",
+  filter: undefined, // This will be ignored/removed
+};
+
+const newUrl = setHashParamsInUrl(url, params);
+// Result: "https://example.com/page#section?theme=dark&language=en&view=grid"
+```
+
 ## API and utils for direct manipulation
 
 Low level tools and utils for getting/setting arbitrary typed values in the URL hash string or manipulating the hash string without having to actually set the URL:

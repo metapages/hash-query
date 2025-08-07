@@ -18,14 +18,21 @@ export const useHashParamFloat = (
       ? defaultValue.toString()
       : undefined
   );
-  const [hashNumber, setHashNumber] = useState<number | undefined>(
-    hashParamString ? parseFloat(hashParamString) : undefined
-  );
+  const [hashNumber, setHashNumber] = useState<number | undefined>(() => {
+    // Initialize with the current hash param value or default
+    const initialValue = hashParamString
+      ? parseFloat(hashParamString)
+      : defaultValue;
+    return initialValue;
+  });
 
   // if the hash string value changes
   useEffect(() => {
-    setHashNumber(hashParamString ? parseFloat(hashParamString) : undefined);
-  }, [key, hashParamString, setHashNumber]);
+    const newValue = hashParamString
+      ? parseFloat(hashParamString)
+      : defaultValue;
+    setHashNumber(newValue);
+  }, [key, hashParamString, defaultValue]);
 
   const setNumber = useCallback(
     (val: number | undefined, opts?: SetHashParamOpts) => {

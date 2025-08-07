@@ -22,7 +22,11 @@ magenta            := "\\e[35m"
 grey               := "\\e[90m"
 
 _help:
-    @just --list --unsorted --list-heading $'Commands:\n'
+    #!/usr/bin/env bash
+    just --list --unsorted --list-heading $'Commands:\n'
+    echo -e "    Quick links:"
+    echo -e "       github repo:  {{ green }}https://github.com/metapages/hash-query{{ normal }}"
+    echo -e "       npm:          {{ green }}https://www.npmjs.com/package/@metapages/hash-query{{ normal }}"
 
 # Build the production npm distributions in dist/metaframe and dist/metapage
 build: _build
@@ -47,10 +51,14 @@ watch: _ensure_node_modules
     echo "✅ typescript check"
     {{vite}} --watch build
 
-@_tsc +args="":
+@_tsc +args="": _ensure_node_modules
     {{tsc}} {{args}}
 
 @test: (_tsc "--noEmit")
+    deno test -A test/
+
+@test-watch: (_tsc "--noEmit")
+    deno test -A --watch test/
 
 # Develop:
 #   1. just dev
@@ -76,6 +84,13 @@ dev: _ensure_node_modules watch
 # List all published versions
 @list:
     npm view {{NPM_MODULE}} versions --json
+
+
+# bump the npm version, tag, and push to origin
+@bump:
+    npm version patch
+    git push origin
+    git push origin --tags
 
 # If the version does not exist, publish the packages (metaframe+metapage)
 publish: _require_NPM_TOKEN _ensure_node_modules
@@ -120,3 +135,4 @@ clean:
 
 @_ensure_node_modules:
     if [ ! -d node_modules ]; then npm i; fi
+
