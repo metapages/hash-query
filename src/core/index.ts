@@ -291,15 +291,11 @@ export const setHashParamValueInUrl = (
   url: string | URL,
   key: string,
   value: string | undefined
-) => {
+): URL => {
   const urlBlob = url instanceof URL ? url : new URL(url);
   const newHash = setHashParamValueInHashString(urlBlob.hash, key, value);
   urlBlob.hash = newHash;
-  let finalUrl = urlBlob.href;
-  if (finalUrl.endsWith("#?")) {
-    finalUrl = finalUrl.slice(0, -2);
-  }
-  return finalUrl;
+  return urlBlob;
 };
 
 /**
@@ -384,7 +380,7 @@ export const setHashParamValueFloatInUrl = (
   url: string,
   key: string,
   value: number | undefined
-): string => {
+): URL => {
   return setHashParamValueInUrl(url, key, value ? value.toString() : undefined);
 };
 
@@ -420,7 +416,7 @@ export const setHashParamValueIntInUrl = (
   url: string,
   key: string,
   value: number | undefined
-): string => {
+): URL => {
   return setHashParamValueInUrl(
     url,
     key,
@@ -456,7 +452,7 @@ export const setHashParamValueBooleanInUrl = (
   url: string,
   key: string,
   value: boolean | undefined
-): string => {
+): URL => {
   return setHashParamValueInUrl(url, key, value ? "true" : undefined);
 };
 
@@ -488,7 +484,7 @@ export const setHashParamValueBase64EncodedInUrl = (
   url: string,
   key: string,
   value: string | undefined
-): string => {
+): URL => {
   return setHashParamValueInUrl(
     url,
     key,
@@ -533,9 +529,6 @@ export const deleteHashParamFromWindow = (
   setHashParamInWindow(key, undefined, opts);
 };
 
-export const deleteHashParamFromUrl = (
-  url: string | URL,
-  key: string
-): string => {
+export const deleteHashParamFromUrl = (url: string | URL, key: string): URL => {
   return setHashParamValueInUrl(url, key, undefined);
 };
