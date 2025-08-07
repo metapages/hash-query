@@ -90,7 +90,7 @@ dev: _ensure_node_modules watch
 @bump:
     npm version patch
     git push origin
-    git push origin --tags
+    git push origin $(git describe --tags --abbrev=0)
 
 # If the version does not exist, publish the packages (metaframe+metapage)
 publish: _require_NPM_TOKEN _ensure_node_modules
