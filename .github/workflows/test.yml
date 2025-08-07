@@ -2,7 +2,7 @@
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
 # This workflow is triggered on pushes to non-main (or master) branches
 # Builds and tests the app (just test)
-name: Test (self-hosted)
+name: Run all tests
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 on:

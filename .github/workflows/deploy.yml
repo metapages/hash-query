@@ -1,5 +1,5 @@
 # https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions
-name: Deno deploy api+browser
+name: NPM publish
 
 # https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions
 on:
