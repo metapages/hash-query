@@ -20,14 +20,21 @@ export const useHashParamJson = <T>(
       : undefined
   );
 
-  const [hashBlob, setHashBlob] = useState<T>(
-    blobFromBase64String(hashParamString)
-  );
+  const [hashBlob, setHashBlob] = useState<T | undefined>(() => {
+    // Initialize with the current hash param value or default
+    const initialValue = hashParamString
+      ? blobFromBase64String(hashParamString)
+      : defaultBlob;
+    return initialValue;
+  });
 
   // if the hash string value changes
   useEffect(() => {
-    setHashBlob(blobFromBase64String(hashParamString));
-  }, [key, hashParamString, setHashBlob]);
+    const newValue = hashParamString
+      ? blobFromBase64String(hashParamString)
+      : defaultBlob;
+    setHashBlob(newValue);
+  }, [key, hashParamString, defaultBlob]);
 
   const setJsonBlob = useCallback(
     (blob?: T | undefined, opts?: SetHashParamOpts) => {

@@ -8,24 +8,26 @@ import { SetHashParamOpts } from "../core";
 export const useHashParamInt = (
   key: string,
   defaultValue?: number
-): [
-  number | undefined,
-  (v: number | undefined) => void
-] => {
+): [number | undefined, (v: number | undefined) => void] => {
   const [hashParamString, setHashParamString] = useHashParam(
     key,
     defaultValue !== undefined && defaultValue !== null
       ? defaultValue.toString()
       : undefined
   );
-  const [hashInt, setHashInt] = useState<number | undefined>(
-    hashParamString ? parseInt(hashParamString) : undefined
-  );
+  const [hashInt, setHashInt] = useState<number | undefined>(() => {
+    // Initialize with the current hash param value or default
+    const initialValue = hashParamString
+      ? parseInt(hashParamString)
+      : defaultValue;
+    return initialValue;
+  });
 
   // if the hash string value changes
   useEffect(() => {
-    setHashInt(hashParamString ? parseInt(hashParamString) : undefined);
-  }, [key, hashParamString, setHashInt]);
+    const newValue = hashParamString ? parseInt(hashParamString) : defaultValue;
+    setHashInt(newValue);
+  }, [key, hashParamString, defaultValue]);
 
   const setInt = useCallback(
     (val: number | undefined, opts?: SetHashParamOpts) => {

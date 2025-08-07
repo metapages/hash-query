@@ -1,11 +1,11 @@
-import {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-import { useHashParam } from './useHashParam';
-import { SetHashParamOpts, stringFromBase64String, stringToBase64String } from '../core';
+import { useHashParam } from "./useHashParam";
+import {
+  SetHashParamOpts,
+  stringFromBase64String,
+  stringToBase64String,
+} from "../core";
 
 /**
  * Hook for getting/setting hash param string value, but base64 encoded
@@ -24,14 +24,21 @@ export const useHashParamBase64 = (
       ? stringToBase64String(defaultValue)
       : undefined
   );
-  const [decodedString, setDecodedString] = useState<string | undefined>(
-    defaultValue
-  );
+  const [decodedString, setDecodedString] = useState<string | undefined>(() => {
+    // Initialize with the current hash param value or default
+    const initialValue = hashParamString
+      ? stringFromBase64String(hashParamString)
+      : defaultValue;
+    return initialValue;
+  });
 
   // if the hash string value changes
   useEffect(() => {
-    setDecodedString(hashParamString ? stringFromBase64String(hashParamString) : undefined);
-  }, [key, hashParamString, setDecodedString]);
+    const newValue = hashParamString
+      ? stringFromBase64String(hashParamString)
+      : defaultValue;
+    setDecodedString(newValue);
+  }, [key, hashParamString, defaultValue]);
 
   const encodeAndSetStringParam = useCallback(
     (rawString: string | undefined, opts?: SetHashParamOpts) => {

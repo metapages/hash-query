@@ -22,15 +22,30 @@ export const blobFromBase64String = (value: string | undefined) => {
 };
 
 export const stringToBase64String = (value: string): string => {
-  return btoa(encodeURIComponent(value));
+  return btoa(value);
 };
 
 export const stringFromBase64String = (value: string): string => {
   //github.com/metapages/metaframe-js/issues/11
-  https: while (value.endsWith("%3D")) {
+  while (value.endsWith("%3D")) {
     value = value.slice(0, -3);
   }
-  return decodeURIComponent(atob(value));
+
+  // Only handle backward compatibility for old double-encoded data
+  try {
+    const base64Decoded = atob(value);
+    // Check if this is old double-encoded data (contains % characters)
+    if (base64Decoded.indexOf("%") !== -1) {
+      // This is old double-encoded data, need to decode URI component
+      return decodeURIComponent(base64Decoded);
+    } else {
+      // This is regular base64 data, just return the decoded content
+      return base64Decoded;
+    }
+  } catch (error) {
+    // If atob fails, throw the error
+    throw error;
+  }
 };
 
 // Get everything after # then after ?
@@ -74,7 +89,9 @@ export const getUrlHashParamsFromHashString = (
 
   Object.keys(hashObject).forEach((key) => {
     try {
-      hashObject[key] = decodeURIComponent(hashObject[key]);
+      const value = hashObject[key];
+      // Simply URL-decode all values - no base64 detection needed
+      hashObject[key] = decodeURIComponent(value);
     } catch (ignored) {
       hashObject[key] = hashObject[key];
     }
@@ -136,7 +153,7 @@ export const setHashParamValueInHashString = (
   hash: string,
   key: string,
   value: string | undefined
-) => {
+): string => {
   const [preHashParamString, hashObject] = getUrlHashParamsFromHashString(hash);
 
   let changed = false;
@@ -162,12 +179,111 @@ export const setHashParamValueInHashString = (
   keys.sort();
   const hashStringNew = keys
     .map((key, i) => {
-      return `${key}=${encodeURIComponent(hashObject[key])}`;
+      const value = hashObject[key];
+
+      // Check if value is already base64-encoded (contains only base64 chars and has proper length)
+      // This is a simple check to avoid URL-encoding base64 strings
+      const isBase64 =
+        /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length % 4 === 0;
+
+      // Only URL-encode if it's not already base64-encoded
+      const encodedValue = isBase64 ? value : encodeURIComponent(value);
+      return `${key}=${encodedValue}`;
     })
     .join("&");
+
   // replace after the ? but keep before that
-  
-  return `${preHashParamString}${preHashParamString ? "?" : ""}${hashStringNew}`;
+  if (!preHashParamString && !hashStringNew) {
+    return "";
+  }
+
+  return `${preHashParamString || ""}${
+    hashStringNew ? "?" + hashStringNew : ""
+  }`;
+};
+
+/**
+ * Efficiently creates a hash string with multiple parameters at once.
+ * This is more efficient than calling setHashParamValueInHashString repeatedly.
+ */
+export const createHashParamValuesInHashString = (
+  hash: string,
+  params: Record<string, string | undefined>
+): string => {
+  // Efficiently extract prehash string and existing parameters
+  let hashString = hash;
+  while (hashString.startsWith("#")) {
+    hashString = hashString.substring(1);
+  }
+
+  const queryIndex = hashString.indexOf("?");
+  const preHashString =
+    queryIndex === -1 ? hashString : hashString.substring(0, queryIndex);
+
+  // Parse existing parameters efficiently
+  const hashObject: Record<string, string> = {};
+  if (queryIndex !== -1) {
+    const paramsString = hashString.substring(queryIndex + 1);
+    if (paramsString.length > 0) {
+      paramsString.split("&").forEach((s) => {
+        if (s.length > 0) {
+          const dividerIndex = s.indexOf("=");
+          if (dividerIndex === -1) {
+            hashObject[s] = "";
+          } else {
+            const key = s.substring(0, dividerIndex);
+            const value = s.substring(dividerIndex + 1);
+            try {
+              hashObject[key] = decodeURIComponent(value);
+            } catch {
+              hashObject[key] = value;
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // Apply new parameters
+  let changed = false;
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null) {
+      if (hashObject.hasOwnProperty(key)) {
+        delete hashObject[key];
+        changed = true;
+      }
+    } else if (hashObject[key] !== value) {
+      hashObject[key] = value;
+      changed = true;
+    }
+  }
+
+  // don't do work if unneeded
+  if (!changed) {
+    return hash;
+  }
+
+  // Build the new hash string efficiently
+  const keys = Object.keys(hashObject);
+  keys.sort();
+  const hashStringNew = keys
+    .map((key) => {
+      const value = hashObject[key];
+      // Check if value is already base64-encoded (contains only base64 chars and has proper length)
+      const isBase64 =
+        /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length % 4 === 0;
+      // Only URL-encode if it's not already base64-encoded
+      const encodedValue = isBase64 ? value : encodeURIComponent(value);
+      return `${key}=${encodedValue}`;
+    })
+    .join("&");
+
+  // Construct final hash string
+  if (!preHashString && !hashStringNew) {
+    return "";
+  }
+
+  return `${preHashString || ""}${hashStringNew ? "?" + hashStringNew : ""}`;
 };
 
 // returns URL string
@@ -186,20 +302,31 @@ export const setHashParamValueInUrl = (
   return finalUrl;
 };
 
+/**
+ * Convenience function to set multiple hash parameters in a URL at once.
+ * Takes a URL (string or URL object) and a record of hash parameters,
+ * then returns a URL with those parameters set.
+ */
+export const setHashParamsInUrl = (
+  url: string | URL,
+  params: Record<string, string | undefined>
+): URL => {
+  const urlBlob = url instanceof URL ? url : new URL(url);
+  let newHash = createHashParamValuesInHashString(urlBlob.hash, params);
+  urlBlob.hash = newHash;
+  return urlBlob;
+};
+
 /* json */
 
 export const setHashParamValueJsonInUrl = <T>(
   url: string | URL,
   key: string,
   value: T | undefined
-): string => {
+): URL => {
   const urlBlob = url instanceof URL ? url : new URL(url);
   urlBlob.hash = setHashParamValueJsonInHashString(urlBlob.hash, key, value);
-  let finalUrl = urlBlob.href;
-  if (finalUrl.endsWith("#?")) {
-    finalUrl = finalUrl.slice(0, -2);
-  }
-  return finalUrl;
+  return urlBlob;
 };
 
 export const getHashParamValueJsonFromUrl = <T>(
