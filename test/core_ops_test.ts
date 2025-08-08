@@ -6,6 +6,9 @@ import {
   setHashParamsInUrl,
   getUrlHashParams,
   createHashParamValuesInHashString,
+  setHashParamValueUriEncodedInUrl,
+  setHashParamValueJsonInUrl,
+  getHashParamValueJsonFromUrl,
 } from "../src/core/index.ts";
 
 Deno.test({
@@ -249,5 +252,69 @@ Deno.test({
       resultUrl,
       "https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
     );
+  },
+});
+
+Deno.test({
+  name: "uri encoding works",
+  async fn() {
+    const testUrl =
+      "https://foo.com?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1&hashkey2=hashvalue2";
+    const valueRaw = "${hashvalue1-replaced}";
+    const valueRawEncoded = encodeURIComponent("${hashvalue1-replaced}");
+    const resultUrl = setHashParamValueUriEncodedInUrl(
+      testUrl,
+      "hashkey1",
+      valueRaw
+    ).href;
+    assertEquals(
+      resultUrl,
+      `https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=${valueRawEncoded}&hashkey2=hashvalue2`
+    );
+  },
+});
+
+Deno.test({
+  name: "Value that should be uri encoded is not because it is manual",
+  async fn() {
+    const testUrl =
+      "https://foo.com?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1&hashkey2=hashvalue2";
+    const valueRaw = "${hashvalue1-replaced}";
+    const resultUrl = setHashParamValueInUrl(
+      testUrl,
+      "hashkey1",
+      valueRaw
+    ).href;
+    assertEquals(
+      resultUrl,
+      `https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=${valueRaw}&hashkey2=hashvalue2`
+    );
+  },
+});
+
+const stringWithNewlines = `
+Some string
+with newlines
+`;
+
+Deno.test({
+  name: "JSON encoding and retrieval",
+  async fn() {
+    const testUrl =
+      "https://foo.com?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1&hashkey2=hashvalue2";
+    const valueRaw = {
+      foo: "bar",
+      1: true,
+      stringWithNewlines,
+    };
+    const resultUrl = setHashParamValueJsonInUrl(
+      testUrl,
+      "hashkey1",
+      valueRaw
+    ).href;
+
+    const jsonBack = getHashParamValueJsonFromUrl(resultUrl, "hashkey1");
+
+    assertEquals(jsonBack, valueRaw);
   },
 });

@@ -88,13 +88,7 @@ export const getUrlHashParamsFromHashString = (
     });
 
   Object.keys(hashObject).forEach((key) => {
-    try {
-      const value = hashObject[key];
-      // Simply URL-decode all values - no base64 detection needed
-      hashObject[key] = decodeURIComponent(value);
-    } catch (ignored) {
-      hashObject[key] = hashObject[key];
-    }
+    hashObject[key] = hashObject[key];
   });
   return [preHashString, hashObject];
 };
@@ -187,8 +181,7 @@ export const setHashParamValueInHashString = (
         /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length % 4 === 0;
 
       // Only URL-encode if it's not already base64-encoded
-      const encodedValue = isBase64 ? value : encodeURIComponent(value);
-      return `${key}=${encodedValue}`;
+      return `${key}=${value}`;
     })
     .join("&");
 
@@ -233,11 +226,7 @@ export const createHashParamValuesInHashString = (
           } else {
             const key = s.substring(0, dividerIndex);
             const value = s.substring(dividerIndex + 1);
-            try {
-              hashObject[key] = decodeURIComponent(value);
-            } catch {
-              hashObject[key] = value;
-            }
+            hashObject[key] = value;
           }
         }
       });
@@ -273,8 +262,7 @@ export const createHashParamValuesInHashString = (
       const isBase64 =
         /^[A-Za-z0-9+/]+={0,2}$/.test(value) && value.length % 4 === 0;
       // Only URL-encode if it's not already base64-encoded
-      const encodedValue = isBase64 ? value : encodeURIComponent(value);
-      return `${key}=${encodedValue}`;
+      return `${key}=${value}`;
     })
     .join("&");
 
@@ -520,6 +508,50 @@ export const getHashParamValueBase64DecodedFromWindow = (
   key: string
 ): string | undefined => {
   return getHashParamValueBase64DecodedFromUrl(window.location.href, key);
+};
+
+/* HashValueUriEncoded */
+
+export const setHashParamValueUriEncodedInUrl = (
+  url: string,
+  key: string,
+  value: string | undefined
+): URL => {
+  return setHashParamValueInUrl(
+    url,
+    key,
+    value === null || value === undefined
+      ? undefined
+      : encodeURIComponent(value)
+  );
+};
+
+export const getHashParamValueUriDecodedFromUrl = (
+  url: string | URL,
+  key: string
+): string | undefined => {
+  const valueString = getHashParamValue(url, key);
+  return valueString && valueString !== ""
+    ? decodeURIComponent(valueString)
+    : undefined;
+};
+
+export const setHashParamValueUriEncodedInWindow = (
+  key: string,
+  value: string | undefined,
+  opts?: SetHashParamOpts
+): void => {
+  const encodedValue =
+    value === null || value === undefined
+      ? undefined
+      : encodeURIComponent(value);
+  setHashParamInWindow(key, encodedValue, opts);
+};
+
+export const getHashParamValueUriDecodedFromWindow = (
+  key: string
+): string | undefined => {
+  return getHashParamValueUriDecodedFromUrl(window.location.href, key);
 };
 
 export const deleteHashParamFromWindow = (
