@@ -234,3 +234,20 @@ Deno.test({
     assertEquals(result4, "#section?key1=value1");
   },
 });
+
+Deno.test({
+  name: "It is not possible to preserve the path slash state in URL (trailing slash is always added)",
+  async fn() {
+    const testUrl =
+      "https://foo.com?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1&hashkey2=hashvalue2";
+    const resultUrl = setHashParamValueInUrl(
+      testUrl,
+      "hashkey1",
+      "hashvalue1-replaced"
+    ).href;
+    assertEquals(
+      resultUrl,
+      "https://foo.com/?key1=val1&key2=val2#prehashthing?hashkey1=hashvalue1-replaced&hashkey2=hashvalue2"
+    );
+  },
+});
