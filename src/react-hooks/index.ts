@@ -1,4 +1,5 @@
 export * from "./useHashParam";
+export * from "./useHashParamUriEncoded";
 export * from "./useHashParamBase64";
 export * from "./useHashParamBoolean";
 export * from "./useHashParamFloat";
