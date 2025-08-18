@@ -36,9 +36,16 @@ export const stringToBase64String = (value: string): string => {
 };
 
 export const stringFromBase64String = (value: string): string => {
-  const base64Decoded = atob(value);
-  // This is regular base64 data, just return the decoded content
-  return base64Decoded;
+  try {
+    const base64Decoded = atob(value);
+    // This is regular base64 data, just return the decoded content
+    return base64Decoded;
+
+  } catch(e) {
+    const base64Decoded = atob(decodeURIComponent(value));
+    // This is regular base64 data, just return the decoded content
+    return base64Decoded;
+  }
 };
 
 // Get everything after # then after ?

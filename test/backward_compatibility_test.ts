@@ -1,7 +1,11 @@
 /// <reference lib="deno.ns" />
 import { assertEquals } from '@std/assert';
 
-import { getHashParamValueJsonFromUrl } from '../src/core/index.ts';
+import {
+  blobFromBase64String,
+  blobToBase64String,
+  getHashParamValueJsonFromUrl,
+} from '../src/core/index.ts';
 
 Deno.test({
   name: "Backward compatibility with old double-encoded JSON objects",
@@ -25,36 +29,36 @@ Deno.test({
     // const decodedFromOld = blobFromBase64String(oldFormatBase64);
     // assertEquals(decodedFromOld, jsonObject, "Old format should decode correctly");
 
-    // // Test that new format can be decoded correctly
-    // const newFormatBase64 = blobToBase64String(jsonObject);
-    // console.log("New format base64:", newFormatBase64);
-    // const decodedFromNew = blobFromBase64String(newFormatBase64);
-    // assertEquals(decodedFromNew, jsonObject, "New format should decode correctly");
+    // Test that new format can be decoded correctly
+    const newFormatBase64 = blobToBase64String(jsonObject);
+    console.log("New format base64:", newFormatBase64);
+    const decodedFromNew = blobFromBase64String(newFormatBase64);
+    assertEquals(decodedFromNew, jsonObject, "New format should decode correctly");
 
-    // // Test that both formats are different (as expected)
-    // assertEquals(oldFormatBase64 !== newFormatBase64, true, "Old and new formats should be different");
+    // Test that both formats are different (as expected)
+    assertEquals(oldFormatBase64 !== newFormatBase64, true, "Old and new formats should be different");
   },
 });
 
-// Deno.test({
-//   name: "Backward compatibility with URL-encoded old format in hash parameters",
-//   async fn() {
-//     const jsonObject = {
-//       test: "data",
-//       number: 42,
-//     };
+Deno.test({
+  name: "Backward compatibility with URL-encoded old format in hash parameters",
+  async fn() {
+    const jsonObject = {
+      test: "data",
+      number: 42,
+    };
 
-//     // Create old format base64 (double-encoded)
-//     const oldFormatBase64 = btoa(encodeURIComponent(JSON.stringify(jsonObject)));
+    // Create old format base64 (double-encoded)
+    const oldFormatBase64 = btoa(encodeURIComponent(JSON.stringify(jsonObject)));
     
-//     // Simulate URL encoding that would happen in hash parameters
-//     const urlEncodedOldFormat = encodeURIComponent(oldFormatBase64);
+    // Simulate URL encoding that would happen in hash parameters
+    const urlEncodedOldFormat = encodeURIComponent(oldFormatBase64);
     
-//     // Test that the URL-encoded old format can be decoded correctly
-//     const decodedFromUrlEncoded = blobFromBase64String(urlEncodedOldFormat);
-//     assertEquals(decodedFromUrlEncoded, jsonObject, "URL-encoded old format should decode correctly");
-//   },
-// });
+    // Test that the URL-encoded old format can be decoded correctly
+    const decodedFromUrlEncoded = blobFromBase64String(urlEncodedOldFormat);
+    assertEquals(decodedFromUrlEncoded, jsonObject, "URL-encoded old format should decode correctly");
+  },
+});
 
 // Deno.test({
 //   name: "String encoding/decoding backward compatibility",
