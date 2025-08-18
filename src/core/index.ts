@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from "fast-json-stable-stringify";
+import stringify from 'fast-json-stable-stringify';
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -30,22 +30,8 @@ export const stringFromBase64String = (value: string): string => {
   while (value.endsWith("%3D")) {
     value = value.slice(0, -3);
   }
-
-  // Only handle backward compatibility for old double-encoded data
-  try {
-    const base64Decoded = atob(value);
-    // Check if this is old double-encoded data (contains % characters)
-    if (base64Decoded.indexOf("%") !== -1) {
-      // This is old double-encoded data, need to decode URI component
-      return decodeURIComponent(base64Decoded);
-    } else {
-      // This is regular base64 data, just return the decoded content
-      return base64Decoded;
-    }
-  } catch (error) {
-    // If atob fails, throw the error
-    throw error;
-  }
+  const base64Decoded = atob(value);
+  return base64Decoded;
 };
 
 // Get everything after # then after ?

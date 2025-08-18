@@ -1,15 +1,14 @@
 /// <reference lib="deno.ns" />
 
 import {
-  blobToBase64String,
   blobFromBase64String,
-  stringToBase64String,
-  stringFromBase64String,
+  blobToBase64String,
+  createHashParamValuesInHashString,
   getUrlHashParamsFromHashString,
   setHashParamValueInHashString,
-  createHashParamValuesInHashString,
-  setHashParamsInUrl,
-} from "../src/core/index.ts";
+  stringFromBase64String,
+  stringToBase64String,
+} from '../src/core/index.ts';
 
 Deno.test({
   name: "Performance test - optimized hash parameter processing",
@@ -26,9 +25,6 @@ Deno.test({
       },
     };
 
-    const oldFormatBase64 = btoa(
-      encodeURIComponent(JSON.stringify(jsonObject))
-    );
     const newFormatBase64 = blobToBase64String(jsonObject);
 
     // Test strings
@@ -43,9 +39,7 @@ Deno.test({
 
     const start1 = performance.now();
     for (let i = 0; i < iterations; i++) {
-      // Test old format decoding (backward compatibility)
-      blobFromBase64String(oldFormatBase64);
-      // Test new format decoding
+      // Test format decoding
       blobFromBase64String(newFormatBase64);
     }
     const end1 = performance.now();
@@ -56,7 +50,7 @@ Deno.test({
 
     const testHash = `#prehash?key1=${encodeURIComponent(
       regularString
-    )}&key2=${base64String}&key3=${oldFormatBase64}&key4=${newFormatBase64}`;
+    )}&key2=${base64String}&key4=${newFormatBase64}`;
 
     const start2 = performance.now();
     for (let i = 0; i < iterations; i++) {
@@ -72,7 +66,6 @@ Deno.test({
     for (let i = 0; i < iterations; i++) {
       setHashParamValueInHashString("#prehash", "key1", regularString);
       setHashParamValueInHashString("#prehash", "key2", base64String);
-      setHashParamValueInHashString("#prehash", "key3", oldFormatBase64);
       setHashParamValueInHashString("#prehash", "key4", newFormatBase64);
     }
     const end3 = performance.now();
@@ -84,7 +77,6 @@ Deno.test({
     const multipleParams = {
       key1: regularString,
       key2: base64String,
-      key3: oldFormatBase64,
       key4: newFormatBase64,
       key5: "another value",
       key6: "yet another",
