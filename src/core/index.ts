@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from 'fast-json-stable-stringify';
+import stringify from "fast-json-stable-stringify";
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -27,7 +27,8 @@ export const stringToBase64String = (value: string): string => {
 export const stringFromBase64String = (value: string): string => {
   try {
     return decodeURIComponent(atob(value));
-  } catch(e) {
+  } catch (e: any) {
+    console.error(`Failure to decode base64 string (error: ${e}): ${value}`, e);
     return decodeURIComponent(atob(decodeURIComponent(value)));
   }
 };
