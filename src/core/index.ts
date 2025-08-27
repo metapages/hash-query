@@ -15,36 +15,20 @@ export const blobToBase64String = (blob: Record<string, any>) => {
 
 export const blobFromBase64String = (value: string | undefined) => {
   if (value && value.length > 0) {
-    // backwards compability with old double-encoded data
-    try {
-      const blob = JSON.parse(stringFromBase64String(value));
-      return blob;
-    } catch(e1) {
-      try {
-        const blob = JSON.parse(decodeURIComponent(stringFromBase64String(value)));
-        return blob;
-      } catch(e2) {
-        throw e1
-      }
-    }
+    return JSON.parse(stringFromBase64String(value));
   }
   return undefined;
 };
 
 export const stringToBase64String = (value: string): string => {
-  return btoa(value);
+  return btoa(encodeURIComponent(value));
 };
 
 export const stringFromBase64String = (value: string): string => {
   try {
-    const base64Decoded = atob(value);
-    // This is regular base64 data, just return the decoded content
-    return base64Decoded;
-
+    return decodeURIComponent(atob(value));
   } catch(e) {
-    const base64Decoded = atob(decodeURIComponent(value));
-    // This is regular base64 data, just return the decoded content
-    return base64Decoded;
+    return decodeURIComponent(atob(decodeURIComponent(value)));
   }
 };
 
