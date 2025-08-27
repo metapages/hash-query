@@ -28,8 +28,19 @@ export const stringFromBase64String = (value: string): string => {
   try {
     return decodeURIComponent(atob(value));
   } catch (e: any) {
-    console.error(`Failure to decode base64 string (error: ${e}): ${value}`, e);
-    return decodeURIComponent(atob(decodeURIComponent(value)));
+    console.error(
+      `Failure1 to decode base64 string (error: ${e}): ${value}`,
+      e
+    );
+    try {
+      return decodeURIComponent(atob(decodeURIComponent(value)));
+    } catch (e2: any) {
+      console.error(
+        `Failure2 to decode base64 string (error: ${e2}): ${value}`,
+        e2
+      );
+      return atob(value);
+    }
   }
 };
 
