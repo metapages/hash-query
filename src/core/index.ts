@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from "fast-json-stable-stringify";
+import stringify from 'fast-json-stable-stringify';
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -465,7 +465,7 @@ export const getHashParamValueBooleanFromWindow = (
 /* HashValueBase64 */
 
 export const setHashParamValueBase64EncodedInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: string | undefined
 ): URL => {
