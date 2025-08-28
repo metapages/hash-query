@@ -15,7 +15,11 @@ export const blobToBase64String = (blob: Record<string, any>) => {
 
 export const blobFromBase64String = (value: string | undefined) => {
   if (value && value.length > 0) {
-    return JSON.parse(stringFromBase64String(value));
+    try {
+      return JSON.parse(stringFromBase64String(value));
+    } catch (e: any) {
+      return JSON.parse(decodeURIComponent(atob(decodeURIComponent(value))))
+    }
   }
   return undefined;
 };
@@ -28,19 +32,8 @@ export const stringFromBase64String = (value: string): string => {
   try {
     return decodeURIComponent(atob(value));
   } catch (e: any) {
-    console.error(
-      `Failure1 to decode base64 string (error: ${e}): ${value}`,
-      e
-    );
-    try {
-      return decodeURIComponent(atob(decodeURIComponent(value)));
-    } catch (e2: any) {
-      console.error(
-        `Failure2 to decode base64 string (error: ${e2}): ${value}`,
-        e2
-      );
-      return atob(value);
-    }
+    // swallow error because it might be old format
+    return decodeURIComponent(atob(decodeURIComponent(value)));
   }
 };
 
