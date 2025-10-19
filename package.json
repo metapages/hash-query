@@ -1,16 +1,29 @@
 {
   "name": "@metapages/hash-query",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metapages/hash-query.git"
   },
   "keywords": [
+    "hash parameters",
+    "hash-param",
+    "hash-params",
+    "hash-query",
     "hash",
+    "hooks",
+    "paramaters",
     "query",
-    "url",
     "url-query",
-    "hooks"
+    "url",
+    "use-hash-param",
+    "useHashParam",
+    "useHashParamBase64",
+    "useHashParamBoolean",
+    "useHashParamFloat",
+    "useHashParamInt",
+    "useHashParamJson",
+    "useHashParamUriEncoded"
   ],
   "type": "module",
   "main": "./dist/core/index.js",

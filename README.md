@@ -1,7 +1,9 @@
 
 # @metapages/hash-query
 
-Get/set URL parameters in the hash string instead of the query string.
+Get/set URL parameters (state) in the hash string instead of the query string.
+
+Keep state in sync in the URL
 
 - Includes react hooks for getting/setting typed values.
 - Includes low level tools for getting/setting arbitrary typed values.
