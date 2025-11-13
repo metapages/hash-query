@@ -32,8 +32,8 @@ export const useHashParam = (
       const paramHash = getHashParamsFromWindow()[1];
       setHashParamInternal(paramHash[key]);
     };
-    window.addEventListener("hashchange", onHashChange);
-    return () => window.removeEventListener("hashchange", onHashChange);
+    globalThis.addEventListener("hashchange", onHashChange);
+    return () => globalThis.removeEventListener("hashchange", onHashChange);
   }, []);
 
   const setParam: (v: string | undefined) => void = useCallback(

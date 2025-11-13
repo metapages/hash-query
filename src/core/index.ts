@@ -3,7 +3,7 @@
  * Important note: the internal hash string does NOT have the leading #
  */
 
-import stringify from 'fast-json-stable-stringify';
+import stringify from "fast-json-stable-stringify";
 
 export type SetHashParamOpts = {
   modifyHistory?: boolean;
@@ -18,7 +18,7 @@ export const blobFromBase64String = (value: string | undefined) => {
     try {
       return JSON.parse(stringFromBase64String(value));
     } catch (e: any) {
-      return JSON.parse(decodeURIComponent(atob(decodeURIComponent(value))))
+      return JSON.parse(decodeURIComponent(atob(decodeURIComponent(value))));
     }
   }
   return undefined;
@@ -95,7 +95,7 @@ export const getHashParamFromWindow = (key: string): string | undefined => {
 };
 
 export const getHashParamsFromWindow = (): [string, Record<string, string>] => {
-  return getUrlHashParams(window.location.href);
+  return getUrlHashParams(globalThis.location.href);
 };
 
 export const setHashParamInWindow = (
@@ -103,9 +103,9 @@ export const setHashParamInWindow = (
   value: string | undefined,
   opts?: SetHashParamOpts
 ) => {
-  const hash = window.location.hash.startsWith("#")
-    ? window.location.hash.substring(1)
-    : window.location.hash;
+  const hash = globalThis.location.hash.startsWith("#")
+    ? globalThis.location.hash.substring(1)
+    : globalThis.location.hash;
   const newHash = setHashParamValueInHashString(hash, key, value);
   if (newHash === hash) {
     return;
@@ -114,20 +114,20 @@ export const setHashParamInWindow = (
   if (opts?.modifyHistory) {
     // adds to browser history, so affects back button
     // fires "hashchange" event
-    window.location.hash = newHash;
+    globalThis.location.hash = newHash;
   } else {
     // The following will NOT work to trigger a 'hashchange' event:
     // Replace the state so the back button works correctly
-    window.history.replaceState(
+    globalThis.history.replaceState(
       null,
       document.title,
-      `${window.location.pathname}${window.location.search}${
+      `${globalThis.location.pathname}${globalThis.location.search}${
         newHash.startsWith("#") ? "" : "#"
       }${newHash}`
     );
     // Manually trigger a hashchange event:
     // I don't know how to add the previous and new url parameters
-    window.dispatchEvent(new HashChangeEvent("hashchange"));
+    globalThis.dispatchEvent(new HashChangeEvent("hashchange"));
   }
 };
 
@@ -339,7 +339,7 @@ export const setHashParamValueJsonInWindow = <T>(
 export const getHashParamValueJsonFromWindow = <T>(
   key: string
 ): T | undefined => {
-  return getHashParamValueJsonFromUrl(window.location.href, key);
+  return getHashParamValueJsonFromUrl(globalThis.location.href, key);
 };
 
 export const setHashParamValueJsonInHashString = <T>(
@@ -384,7 +384,7 @@ export const setHashParamValueFloatInWindow = (
 export const getHashParamValueFloatFromWindow = (
   key: string
 ): number | undefined => {
-  return getHashParamValueFloatFromUrl(window.location.href, key);
+  return getHashParamValueFloatFromUrl(globalThis.location.href, key);
 };
 
 /* integer */
@@ -420,7 +420,7 @@ export const setHashParamValueIntInWindow = (
 export const getHashParamValueIntFromWindow = (
   key: string
 ): number | undefined => {
-  return getHashParamValueIntFromUrl(window.location.href, key);
+  return getHashParamValueIntFromUrl(globalThis.location.href, key);
 };
 
 /* boolean */
@@ -452,7 +452,7 @@ export const setHashParamValueBooleanInWindow = (
 export const getHashParamValueBooleanFromWindow = (
   key: string
 ): boolean | undefined => {
-  return getHashParamValueBooleanFromUrl(window.location.href, key);
+  return getHashParamValueBooleanFromUrl(globalThis.location.href, key);
 };
 
 /* HashValueBase64 */
@@ -496,7 +496,7 @@ export const setHashParamValueBase64EncodedInWindow = (
 export const getHashParamValueBase64DecodedFromWindow = (
   key: string
 ): string | undefined => {
-  return getHashParamValueBase64DecodedFromUrl(window.location.href, key);
+  return getHashParamValueBase64DecodedFromUrl(globalThis.location.href, key);
 };
 
 /* HashValueUriEncoded */
@@ -540,7 +540,7 @@ export const setHashParamValueUriEncodedInWindow = (
 export const getHashParamValueUriDecodedFromWindow = (
   key: string
 ): string | undefined => {
-  return getHashParamValueUriDecodedFromUrl(window.location.href, key);
+  return getHashParamValueUriDecodedFromUrl(globalThis.location.href, key);
 };
 
 export const deleteHashParamFromWindow = (
