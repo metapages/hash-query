@@ -1,6 +1,6 @@
 {
   "name": "@metapages/hash-query",
-  "version": "0.9.10",
+  "version": "0.9.11",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metapages/hash-query.git"

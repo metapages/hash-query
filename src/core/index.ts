@@ -90,11 +90,21 @@ export const getHashParamValue = (
   return hashParams[key];
 };
 
+const isBrowser = (): boolean => {
+  return typeof window !== "undefined" && typeof globalThis.location !== "undefined";
+};
+
 export const getHashParamFromWindow = (key: string): string | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamsFromWindow()[1][key];
 };
 
 export const getHashParamsFromWindow = (): [string, Record<string, string>] => {
+  if (!isBrowser()) {
+    return ["", {}];
+  }
   return getUrlHashParams(globalThis.location.href);
 };
 
@@ -103,6 +113,9 @@ export const setHashParamInWindow = (
   value: string | undefined,
   opts?: SetHashParamOpts
 ) => {
+  if (!isBrowser()) {
+    return;
+  }
   const hash = globalThis.location.hash.startsWith("#")
     ? globalThis.location.hash.substring(1)
     : globalThis.location.hash;
@@ -120,7 +133,7 @@ export const setHashParamInWindow = (
     // Replace the state so the back button works correctly
     globalThis.history.replaceState(
       null,
-      document.title,
+      typeof document !== "undefined" ? document.title : "",
       `${globalThis.location.pathname}${globalThis.location.search}${
         newHash.startsWith("#") ? "" : "#"
       }${newHash}`
@@ -339,6 +352,9 @@ export const setHashParamValueJsonInWindow = <T>(
 export const getHashParamValueJsonFromWindow = <T>(
   key: string
 ): T | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueJsonFromUrl(globalThis.location.href, key);
 };
 
@@ -384,6 +400,9 @@ export const setHashParamValueFloatInWindow = (
 export const getHashParamValueFloatFromWindow = (
   key: string
 ): number | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueFloatFromUrl(globalThis.location.href, key);
 };
 
@@ -420,6 +439,9 @@ export const setHashParamValueIntInWindow = (
 export const getHashParamValueIntFromWindow = (
   key: string
 ): number | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueIntFromUrl(globalThis.location.href, key);
 };
 
@@ -452,6 +474,9 @@ export const setHashParamValueBooleanInWindow = (
 export const getHashParamValueBooleanFromWindow = (
   key: string
 ): boolean | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueBooleanFromUrl(globalThis.location.href, key);
 };
 
@@ -496,6 +521,9 @@ export const setHashParamValueBase64EncodedInWindow = (
 export const getHashParamValueBase64DecodedFromWindow = (
   key: string
 ): string | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueBase64DecodedFromUrl(globalThis.location.href, key);
 };
 
@@ -540,6 +568,9 @@ export const setHashParamValueUriEncodedInWindow = (
 export const getHashParamValueUriDecodedFromWindow = (
   key: string
 ): string | undefined => {
+  if (!isBrowser()) {
+    return undefined;
+  }
   return getHashParamValueUriDecodedFromUrl(globalThis.location.href, key);
 };
 
