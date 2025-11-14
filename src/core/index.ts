@@ -370,7 +370,7 @@ export const setHashParamValueJsonInHashString = <T>(
 /* float */
 
 export const setHashParamValueFloatInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: number | undefined
 ): URL => {
@@ -409,7 +409,7 @@ export const getHashParamValueFloatFromWindow = (
 /* integer */
 
 export const setHashParamValueIntInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: number | undefined
 ): URL => {
@@ -448,7 +448,7 @@ export const getHashParamValueIntFromWindow = (
 /* boolean */
 
 export const setHashParamValueBooleanInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: boolean | undefined
 ): URL => {
@@ -530,7 +530,7 @@ export const getHashParamValueBase64DecodedFromWindow = (
 /* HashValueUriEncoded */
 
 export const setHashParamValueUriEncodedInUrl = (
-  url: string,
+  url: string | URL,
   key: string,
   value: string | undefined
 ): URL => {
