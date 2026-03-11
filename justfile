@@ -115,7 +115,7 @@ publish: _ensure_node_modules
     fi
     just build
     echo "PUBLISHING npm version $VERSION"
-    npm publish --access public .
+    npm publish --provenance --access public .
     # git tag $VERSION
     # git push origin $VERSION
 

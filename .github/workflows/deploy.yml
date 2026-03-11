@@ -9,16 +9,25 @@ on:
 
 jobs:
   deploy:
-    # Can switch to ubuntu-latest but self-hosted is safer and faster
     name: npm publish
-    runs-on: [self-hosted]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
           fetch-depth: "0"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: publish version
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: just publish
