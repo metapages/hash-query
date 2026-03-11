@@ -114,10 +114,12 @@ publish: _ensure_node_modules
         fi
     fi
     just build
+
     echo "PUBLISHING npm version $VERSION"
-    npm publish --provenance --access public .
-    # git tag $VERSION
-    # git push origin $VERSION
+    # OIDC Trusted Publishing (automatically uses GitHub Actions OIDC token)
+    npm publish --access public .
+    git tag "v$VERSION"
+    git push origin "v$VERSION"
 
 # Unpublish version https://docs.npmjs.com/cli/v7/commands/npm-unpublish
 unpublish version:
