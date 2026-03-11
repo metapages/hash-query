@@ -39,6 +39,25 @@ const jsonBlob = getHashParamValueJsonFromWindow<Thing>("key");
 setHashParamValueJsonInWindow("key", jsonBlob);
 ```
 
+Use plain JavaScript hash param listeners (non-React):
+
+```typescript
+import {
+  addEventListenerHashParamJson,
+  setHashParamValueJsonInWindow,
+} from "@metapages/hash-query";
+
+const dispose = addEventListenerHashParamJson<Thing>("key", (value) => {
+  // Fires once after a tick with current value, then on each hashchange.
+  console.log("hash param changed:", value);
+});
+
+setHashParamValueJsonInWindow("key", { foo: "bar" });
+
+// Later: remove listener
+dispose();
+```
+
 ## How it works
 
 
@@ -62,11 +81,55 @@ useHashParamBoolean,
 useHashParamFloat,
 useHashParamInt,
 useHashParamJson,
+useHashParamUriEncoded,
 } from "@metapages/hash-query/react-hooks";
 
 ```
 
 Usage is the same as the JSON example above (get/set value)
+
+### Plain JavaScript listeners (typed):
+
+```typescript
+import {
+  addEventListenerHashParamBase64,
+  addEventListenerHashParamBoolean,
+  addEventListenerHashParamFloat,
+  addEventListenerHashParamInt,
+  addEventListenerHashParamJson,
+  addEventListenerHashParamUriEncoded,
+} from "@metapages/hash-query";
+
+const cleanupBase64 = addEventListenerHashParamBase64("name", (value) => {
+  // value: string | undefined (decoded from base64)
+});
+const cleanupBoolean = addEventListenerHashParamBoolean("enabled", (value) => {
+  // value: boolean | undefined
+});
+const cleanupFloat = addEventListenerHashParamFloat("ratio", (value) => {
+  // value: number | undefined
+});
+const cleanupInt = addEventListenerHashParamInt("count", (value) => {
+  // value: number | undefined
+});
+const cleanupJson = addEventListenerHashParamJson<{ foo: string }>(
+  "blob",
+  (value) => {
+    // value: { foo: string } | undefined
+  }
+);
+const cleanupUri = addEventListenerHashParamUriEncoded("q", (value) => {
+  // value: string | undefined (decoded from URI encoding)
+});
+
+// Each listener fires once after a tick with current value, then on hashchange.
+cleanupBase64();
+cleanupBoolean();
+cleanupFloat();
+cleanupInt();
+cleanupJson();
+cleanupUri();
+```
 
 ### Setting multiple hash parameters at once:
 
@@ -134,4 +197,16 @@ setHashParamValueBase64EncodedInUrl
 getHashParamValueBase64DecodedFromUrl
 setHashParamValueBase64EncodedInWindow
 getHashParamValueBase64DecodedFromWindow
+# UriEncoded Functions
+setHashParamValueUriEncodedInUrl
+getHashParamValueUriDecodedFromUrl
+setHashParamValueUriEncodedInWindow
+getHashParamValueUriDecodedFromWindow
+# Listener Functions
+addEventListenerHashParamBase64
+addEventListenerHashParamBoolean
+addEventListenerHashParamFloat
+addEventListenerHashParamInt
+addEventListenerHashParamJson
+addEventListenerHashParamUriEncoded
 ```

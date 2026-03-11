@@ -574,6 +574,110 @@ export const getHashParamValueUriDecodedFromWindow = (
   return getHashParamValueUriDecodedFromUrl(globalThis.location.href, key);
 };
 
+type HashParamValueListener<T> = (value: T | undefined) => void;
+
+const addEventListenerHashParam = <T>(
+  key: string,
+  getValue: (key: string) => T | undefined,
+  onHashParamChange: HashParamValueListener<T>
+): (() => void) => {
+  if (!isBrowser()) {
+    return () => {};
+  }
+
+  let disposed = false;
+  const onHashChange = (_: HashChangeEvent) => {
+    if (disposed) {
+      return;
+    }
+    onHashParamChange(getValue(key));
+  };
+
+  globalThis.addEventListener("hashchange", onHashChange);
+
+  // Defer initial call so consumers can subscribe and then process consistently.
+  setTimeout(() => {
+    if (disposed) {
+      return;
+    }
+    onHashParamChange(getValue(key));
+  }, 0);
+
+  return () => {
+    if (disposed) {
+      return;
+    }
+    disposed = true;
+    globalThis.removeEventListener("hashchange", onHashChange);
+  };
+};
+
+export const addEventListenerHashParamBase64 = (
+  key: string,
+  onHashParamChange: HashParamValueListener<string>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueBase64DecodedFromWindow,
+    onHashParamChange
+  );
+};
+
+export const addEventListenerHashParamBoolean = (
+  key: string,
+  onHashParamChange: HashParamValueListener<boolean>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueBooleanFromWindow,
+    onHashParamChange
+  );
+};
+
+export const addEventListenerHashParamFloat = (
+  key: string,
+  onHashParamChange: HashParamValueListener<number>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueFloatFromWindow,
+    onHashParamChange
+  );
+};
+
+export const addEventListenerHashParamInt = (
+  key: string,
+  onHashParamChange: HashParamValueListener<number>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueIntFromWindow,
+    onHashParamChange
+  );
+};
+
+export const addEventListenerHashParamJson = <T>(
+  key: string,
+  onHashParamChange: HashParamValueListener<T>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueJsonFromWindow,
+    onHashParamChange
+  );
+};
+
+export const addEventListenerHashParamUriEncoded = (
+  key: string,
+  onHashParamChange: HashParamValueListener<string>
+): (() => void) => {
+  return addEventListenerHashParam(
+    key,
+    getHashParamValueUriDecodedFromWindow,
+    onHashParamChange
+  );
+};
+
 export const deleteHashParamFromWindow = (
   key: string,
   opts?: SetHashParamOpts
