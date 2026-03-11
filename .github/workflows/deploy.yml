@@ -20,6 +20,15 @@ jobs:
         with:
           fetch-depth: "0"
 
+      - name: Install Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.5.6
+
+      - uses: extractions/setup-just@v3
+        with:
+          just-version: '1.25.2'
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
