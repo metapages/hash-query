@@ -1,6 +1,6 @@
 {
   "name": "@metapages/hash-query",
-  "version": "0.10.1",
+  "version": "0.10.2",
   "description": "Store state in the URL hash: typed get/set of hash query params (JSON, base64, boolean, number) + React hooks. Shareable, bookmarkable URL state, no server or database required.",
   "license": "MIT",
   "author": "metapages",
