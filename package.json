@@ -1,34 +1,57 @@
 {
   "name": "@metapages/hash-query",
   "version": "0.10.0",
+  "description": "Store state in the URL hash: typed get/set of hash query params (JSON, base64, boolean, number) + React hooks. Shareable, bookmarkable URL state, no server or database required.",
+  "license": "MIT",
+  "author": "metapages",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/metapages/hash-query.git"
   },
+  "bugs": {
+    "url": "https://github.com/metapages/hash-query/issues"
+  },
   "keywords": [
-    "hash parameters",
-    "hash-param",
-    "hash-params",
-    "hash-query",
-    "hash",
-    "hooks",
-    "paramaters",
-    "query",
-    "url-query",
+    "url-state",
+    "url state",
+    "state in url",
+    "state-in-url",
     "url",
+    "hash",
+    "url-hash",
+    "hash-params",
+    "hash-param",
+    "hash-query",
+    "location-hash",
+    "url-fragment",
+    "fragment",
+    "query-params",
+    "query-string",
+    "search-params",
+    "persist-state",
+    "shareable-url",
+    "bookmarkable",
+    "permalink",
+    "deep-link",
+    "state-management",
+    "react",
+    "react-hooks",
     "use-hash-param",
     "useHashParam",
-    "useHashParamBase64",
-    "useHashParamBoolean",
-    "useHashParamFloat",
-    "useHashParamInt",
     "useHashParamJson",
-    "useHashParamUriEncoded"
+    "base64",
+    "json",
+    "typescript",
+    "no-backend",
+    "serverless"
   ],
   "type": "module",
+  "sideEffects": false,
   "main": "./dist/core/index.js",
   "module": "./dist/core/index.js",
   "types": "./dist/core/index.d.ts",
+  "unpkg": "./dist/core/index.js",
+  "jsdelivr": "./dist/core/index.js",
   "exports": {
     ".": {
       "types": "./dist/core/index.d.ts",
@@ -53,15 +76,21 @@
   },
   "files": [
     "dist",
-    "src"
+    "src",
+    "llms.txt"
   ],
   "browser": "./dist/core/index.js",
-  "homepage": "https://github.com/metapages/hash-query/tree/main/docs#readme",
+  "homepage": "https://github.com/metapages/hash-query#readme",
   "scripts": {
     "note": "echo 'use just. See README.md'"
   },
   "peerDependencies": {
     "react": ">=18.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^12.1.1",

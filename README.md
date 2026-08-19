@@ -1,33 +1,49 @@
-
 # @metapages/hash-query
 
-Get/set URL parameters (state) in the hash string instead of the query string.
+**Store application state in the URL hash.** Typed get/set of hash query
+parameters (JSON, base64, boolean, int, float, string), plus React hooks.
+The URL becomes the state: shareable, bookmarkable, back/forward-friendly,
+and it never touches a server or a database.
 
-Keep state in sync in the URL
+```
+https://example.com/app#?theme=dark&view=grid&config=eyJmb28iOiJiYXIifQ%3D%3D
+                        └──────────── your app state lives here ────────────┘
+```
 
-- Includes react hooks for getting/setting typed values.
-- Includes low level tools for getting/setting arbitrary typed values.
-  - Includes base64 encoding/decoding of JSON objects, booleans, numbers, etc.
-
-## Usage
-
-Install the package:
 ```sh
 npm i @metapages/hash-query
 ```
 
-Use the hook in your component:
+[npm](https://www.npmjs.com/package/@metapages/hash-query) ·
+[GitHub](https://github.com/metapages/hash-query) · MIT · TypeScript ·
+zero runtime dependencies beyond `fast-json-stable-stringify`
 
-```typescript
-import { useHashParamJson } from "@metapages/hash-query/react-hooks";
+---
 
-...
+## What problem does this solve?
 
-const [jsonBlob, setJsonBlob] = useHashParamJson<Thing>("key", defaultValue);
-```
+You want a user's settings, filters, editor contents, or app configuration to
+survive a page reload and be shareable as a plain link — without a backend,
+without a login, without `localStorage` (which is per-browser and unshareable).
 
+Putting that state in the URL **hash fragment** (everything after `#`) means:
 
-Use the low level tools for getting/setting arbitrary typed values:
+- **Nothing is sent to the server.** Browsers never transmit the fragment in an
+  HTTP request. Your state stays out of server logs, CDN logs, and analytics
+  referrers. This is the main reason to prefer the hash over `?query=params`.
+- **Works on any static host.** GitHub Pages, S3, a CDN — no routing config, no
+  server-side rendering of query params, no server at all.
+- **Copy the URL, and you copy the state.** Paste it in Slack, bookmark it, put
+  it in a QR code. The recipient sees exactly what you saw.
+- **Safe inside iframes and embeds.** Each embedded app owns its own hash state.
+
+This library is the URL-state layer behind [framejs.io](https://framejs.io) and
+[metapage.io](https://metapage.io), where entire runnable apps and their inputs
+are encoded into a single shareable link.
+
+## Quick start
+
+### Plain JavaScript / TypeScript (no framework)
 
 ```typescript
 import {
@@ -35,178 +51,278 @@ import {
   setHashParamValueJsonInWindow,
 } from "@metapages/hash-query";
 
-const jsonBlob = getHashParamValueJsonFromWindow<Thing>("key");
-setHashParamValueJsonInWindow("key", jsonBlob);
+type Settings = { theme: string; count: number };
+
+// Read state from the URL
+const settings = getHashParamValueJsonFromWindow<Settings>("settings");
+
+// Write state to the URL (updates the address bar immediately)
+setHashParamValueJsonInWindow("settings", { theme: "dark", count: 3 });
 ```
 
-Use plain JavaScript hash param listeners (non-React):
+### React
 
 ```typescript
-import {
-  addEventListenerHashParamJson,
-  setHashParamValueJsonInWindow,
-} from "@metapages/hash-query";
+import { useHashParamJson } from "@metapages/hash-query/react-hooks";
 
-const dispose = addEventListenerHashParamJson<Thing>("key", (value) => {
-  // Fires once after a tick with current value, then on each hashchange.
-  console.log("hash param changed:", value);
+const Component = () => {
+  const [settings, setSettings] = useHashParamJson<Settings>("settings", {
+    theme: "light",
+    count: 0,
+  });
+
+  return (
+    <button onClick={() => setSettings({ ...settings, count: settings.count + 1 })}>
+      {settings.count}
+    </button>
+  );
+};
+```
+
+### Browser via CDN (no build step)
+
+```html
+<script type="module">
+  import {
+    getHashParamValueJsonFromWindow,
+    setHashParamValueJsonInWindow,
+  } from "https://cdn.jsdelivr.net/npm/@metapages/hash-query/+esm";
+
+  setHashParamValueJsonInWindow("state", { hello: "world" });
+</script>
+```
+
+### Reacting to changes without React
+
+```typescript
+import { addEventListenerHashParamJson } from "@metapages/hash-query";
+
+const dispose = addEventListenerHashParamJson<Settings>("settings", (value) => {
+  // Fires once on the next tick with the current value, then on every change.
+  render(value);
 });
 
-setHashParamValueJsonInWindow("key", { foo: "bar" });
-
-// Later: remove listener
-dispose();
+dispose(); // remove the listener
 ```
 
-## How it works
+## How the URL is structured
 
-
-The hash part of the URL (everything after `#`) is split into the `<hash value>` part and the `key=val` query parts of the hash parameter:
+The hash is split into a **pre-hash value** and a **hash query string**:
 
 ```
-https://<origin><path><?querystring>#<hash value>?hashkey1=hashvaue1&hashkey2=hashvaue2...
+https://<origin><path><?querystring>#<hash value>?hashkey1=hashvalue1&hashkey2=hashvalue2
+                                     └─ preserved ┘└──── managed by this library ────┘
 ```
 
+The part before the `?` is left untouched, so this coexists with anchor links
+(`#section`) and hash-based routers (`#/route?key=value`).
 
-## Examples
+Keys are always sorted when written, so the same state always produces the same
+URL string — URLs stay diffable, cacheable, and comparable. JSON values are
+serialized with `fast-json-stable-stringify` for the same reason.
 
-### Other types:
+## Behaviour details
+
+| Behaviour | Default |
+| --- | --- |
+| History entries | Writes use `history.replaceState` — the back button is **not** polluted by every keystroke. Pass `{ modifyHistory: true }` to push a real history entry. |
+| Change notification | A `hashchange` event is always dispatched, including for `replaceState` writes, so hooks and listeners stay in sync. |
+| SSR / Node | Every `*FromWindow` / `*InWindow` function is guarded — reads return `undefined`, writes are no-ops. Nothing throws when `window` is absent. |
+| Removing a value | Set it to `undefined` — the key is deleted from the URL. |
+| React dependency | Optional. The core entry point has no React import; only `@metapages/hash-query/react-hooks` needs it. |
+
+## Which URL-state library should I use?
+
+| Use case | Reach for |
+| --- | --- |
+| State must **not** reach the server; static site, iframe, or embeddable app; plain JS as well as React | **`@metapages/hash-query`** (this package) |
+| Next.js / React app where state belongs in the **query string** and the server should see it (SSR, sharing to link unfurlers, SEO) | [`nuqs`](https://www.npmjs.com/package/nuqs) |
+| React app wanting query-string state with custom serializers, integrated with React Router | [`use-query-params`](https://www.npmjs.com/package/use-query-params) |
+| Just parsing/stringifying a query string, no state binding, no DOM | [`query-string`](https://www.npmjs.com/package/query-string) |
+| A single minimal React hook for one string in the fragment | [`use-hash-param`](https://www.npmjs.com/package/use-hash-param) |
+
+The essential distinction: **query string (`?`) is visible to the server; hash
+fragment (`#`) is not.** If your state is large, private, or your app is served
+as static files, the hash is the right place, and that is what this library is
+built for.
+
+## FAQ
+
+### How do I store state in the URL in JavaScript?
+
+Use `setHashParamValueJsonInWindow(key, value)` to write and
+`getHashParamValueJsonFromWindow(key)` to read. Objects are JSON-serialized and
+base64-encoded so they survive URL round-trips intact.
+
+### How do I persist React state in the URL?
+
+Use the hooks from `@metapages/hash-query/react-hooks`. They have the same shape
+as `useState`, but the value lives in the URL:
 
 ```typescript
+const [value, setValue] = useHashParamJson<T>("key", defaultValue);
+```
 
+### Should I use the URL hash or the query string?
+
+Use the hash when the state is client-only: the browser never sends it to the
+server, so it stays out of logs and works on static hosting. Use the query
+string when the server needs to read the state (SSR, redirects, link previews).
+
+### How do I share app state as a link?
+
+Write your state with this library, then hand the user `window.location.href`.
+The full state is in that string; anyone opening it gets the same view.
+
+### Can I store an object in the URL?
+
+Yes — `useHashParamJson` / `getHashParamValueJsonFromWindow` handle arbitrary
+JSON. Values are base64-encoded, so nested objects, arrays, and strings with
+special characters are safe. Browsers accept very long URLs (Chrome ~2MB), but
+keep them small enough to paste comfortably.
+
+### Does this work without React?
+
+Yes. The core entry point is framework-agnostic plain TypeScript. React hooks
+are an optional separate entry point (`/react-hooks`).
+
+### Does this work with Next.js / SSR?
+
+Reads and writes are no-ops when `window` is undefined, so it will not crash
+during server rendering. Because the server never sees the hash, hydrate from it
+in an effect on the client. If you need server-visible state, use the query
+string instead.
+
+### Is this an alternative to localStorage?
+
+Yes, when you want the state to be **shareable**. `localStorage` is bound to one
+browser on one device and cannot be sent to anyone. URL hash state travels with
+the link.
+
+## API
+
+All functions are exported from `@metapages/hash-query`. Naming is systematic:
+
+- `...FromWindow` / `...InWindow` — read/write `window.location` directly.
+- `...FromUrl` / `...InUrl` — operate on a URL string or `URL` object, returning
+  a new URL. Nothing is mutated in the browser.
+- `...InHashString` — operate on a bare hash string, for full manual control.
+
+### Core
+
+```
+getUrlHashParams(url)                          -> [preHashValue, Record<string,string>]
+getUrlHashParamsFromHashString(hash)           -> [preHashValue, Record<string,string>]
+getHashParamValue(url, key)                    -> string | undefined
+getHashParamFromWindow(key)                    -> string | undefined
+getHashParamsFromWindow()                      -> [preHashValue, Record<string,string>]
+setHashParamInWindow(key, value, opts?)
+setHashParamValueInHashString(hash, key, value)-> string
+setHashParamValueInUrl(url, key, value)        -> URL
+setHashParamsInUrl(url, params)                -> URL   // set many at once
+deleteHashParamFromWindow(key)
+deleteHashParamFromUrl(url, key)               -> URL
+```
+
+`opts` is `{ modifyHistory?: boolean }` — `true` pushes a browser history entry.
+
+### Typed accessors
+
+Each type has the same four functions:
+
+| Type | Functions |
+| --- | --- |
+| JSON | `setHashParamValueJsonInUrl`, `getHashParamValueJsonFromUrl`, `setHashParamValueJsonInWindow`, `getHashParamValueJsonFromWindow`, `setHashParamValueJsonInHashString`, `getHashParamValueJsonFromHashString` |
+| Float | `setHashParamValueFloatInUrl`, `getHashParamValueFloatFromUrl`, `setHashParamValueFloatInWindow`, `getHashParamValueFloatFromWindow` |
+| Integer | `setHashParamValueIntInUrl`, `getHashParamValueIntFromUrl`, `setHashParamValueIntInWindow`, `getHashParamValueIntFromWindow` |
+| Boolean | `setHashParamValueBooleanInUrl`, `getHashParamValueBooleanFromUrl`, `setHashParamValueBooleanInWindow`, `getHashParamValueBooleanFromWindow` |
+| Base64 | `setHashParamValueBase64EncodedInUrl`, `getHashParamValueBase64DecodedFromUrl`, `setHashParamValueBase64EncodedInWindow`, `getHashParamValueBase64DecodedFromWindow` |
+| URI-encoded | `setHashParamValueUriEncodedInUrl`, `getHashParamValueUriDecodedFromUrl`, `setHashParamValueUriEncodedInWindow`, `getHashParamValueUriDecodedFromWindow` |
+
+### Encoding helpers
+
+```
+blobToBase64String(object)      -> string   // stable-stringify then base64
+blobFromBase64String(string)    -> object
+stringToBase64String(string)    -> string
+stringFromBase64String(string)  -> string
+```
+
+### Event listeners (no framework)
+
+Each returns a dispose function. Each fires once on the next tick with the
+current value, then on every `hashchange`.
+
+```
+addEventListenerHashParamBase64(key, cb)
+addEventListenerHashParamBoolean(key, cb)
+addEventListenerHashParamFloat(key, cb)
+addEventListenerHashParamInt(key, cb)
+addEventListenerHashParamJson<T>(key, cb)
+addEventListenerHashParamUriEncoded(key, cb)
+```
+
+### React hooks
+
+From `@metapages/hash-query/react-hooks`. All have the `useState` signature
+`[value, setValue]`, and `setValue` accepts the same `opts` argument.
+
+```typescript
 import {
-useHashParam,
-useHashParamBase64,
-useHashParamBoolean,
-useHashParamFloat,
-useHashParamInt,
-useHashParamJson,
-useHashParamUriEncoded,
+  useHashParam,            // string
+  useHashParamBase64,      // string, base64-encoded in the URL
+  useHashParamBoolean,     // boolean
+  useHashParamFloat,       // number
+  useHashParamInt,         // number
+  useHashParamJson,        // any JSON-serializable value
+  useHashParamUriEncoded,  // string, URI-encoded in the URL
 } from "@metapages/hash-query/react-hooks";
-
 ```
 
-Usage is the same as the JSON example above (get/set value)
+## Recipes
 
-### Plain JavaScript listeners (typed):
-
-```typescript
-import {
-  addEventListenerHashParamBase64,
-  addEventListenerHashParamBoolean,
-  addEventListenerHashParamFloat,
-  addEventListenerHashParamInt,
-  addEventListenerHashParamJson,
-  addEventListenerHashParamUriEncoded,
-} from "@metapages/hash-query";
-
-const cleanupBase64 = addEventListenerHashParamBase64("name", (value) => {
-  // value: string | undefined (decoded from base64)
-});
-const cleanupBoolean = addEventListenerHashParamBoolean("enabled", (value) => {
-  // value: boolean | undefined
-});
-const cleanupFloat = addEventListenerHashParamFloat("ratio", (value) => {
-  // value: number | undefined
-});
-const cleanupInt = addEventListenerHashParamInt("count", (value) => {
-  // value: number | undefined
-});
-const cleanupJson = addEventListenerHashParamJson<{ foo: string }>(
-  "blob",
-  (value) => {
-    // value: { foo: string } | undefined
-  }
-);
-const cleanupUri = addEventListenerHashParamUriEncoded("q", (value) => {
-  // value: string | undefined (decoded from URI encoding)
-});
-
-// Each listener fires once after a tick with current value, then on hashchange.
-cleanupBase64();
-cleanupBoolean();
-cleanupFloat();
-cleanupInt();
-cleanupJson();
-cleanupUri();
-```
-
-### Setting multiple hash parameters at once:
+### Set several parameters in one URL update
 
 ```typescript
 import { setHashParamsInUrl } from "@metapages/hash-query";
 
-const url = "https://example.com/page#section";
-const params = {
+const newUrl = setHashParamsInUrl("https://example.com/page#section", {
   theme: "dark",
   language: "en",
   view: "grid",
-  filter: undefined, // This will be ignored/removed
-};
-
-const newUrl = setHashParamsInUrl(url, params);
-// Result: "https://example.com/page#section?theme=dark&language=en&view=grid"
+  filter: undefined, // omitted / removed
+});
+// https://example.com/page#section?language=en&theme=dark&view=grid
 ```
 
-## API and utils for direct manipulation
+### Build a shareable link without navigating
 
-Low level tools and utils for getting/setting arbitrary typed values in the URL hash string or manipulating the hash string without having to actually set the URL:
+```typescript
+import { setHashParamValueJsonInUrl } from "@metapages/hash-query";
 
+const shareUrl = setHashParamValueJsonInUrl(
+  window.location.href,
+  "config",
+  currentConfig
+).href;
+```
 
-## Exported functions
+### Add a back-button step
+
+```typescript
+setHashParamValueJsonInWindow("page", { index: 2 }, { modifyHistory: true });
+```
+
+## Development
+
+This repo uses [`just`](https://github.com/casey/just):
 
 ```sh
-# Base Functions
-blobToBase64String
-blobFromBase64String
-stringToBase64String
-stringFromBase64String
-getUrlHashParams
-getUrlHashParamsFromHashString
-getHashParamValue
-getHashParamFromWindow
-getHashParamsFromWindow
-setHashParamInWindow
-setHashParamValueInHashString
-setHashParamValueInUrl
-deleteHashParamFromWindow
-deleteHashParamFromUrl
-# JSON Functions
-setHashParamValueJsonInUrl
-getHashParamValueJsonFromUrl
-setHashParamValueJsonInWindow
-getHashParamValueJsonFromWindow
-setHashParamValueJsonInHashString
-# Float Functions
-setHashParamValueFloatInUrl
-getHashParamValueFloatFromUrl
-setHashParamValueFloatInWindow
-getHashParamValueFloatFromWindow
-# Integer Functions
-setHashParamValueIntInUrl
-getHashParamValueIntFromUrl
-setHashParamValueIntInWindow
-getHashParamValueIntFromWindow
-# Boolean Functions
-setHashParamValueBooleanInUrl
-getHashParamValueBooleanFromUrl
-setHashParamValueBooleanInWindow
-getHashParamValueBooleanFromWindow
-# Base64 Functions
-setHashParamValueBase64EncodedInUrl
-getHashParamValueBase64DecodedFromUrl
-setHashParamValueBase64EncodedInWindow
-getHashParamValueBase64DecodedFromWindow
-# UriEncoded Functions
-setHashParamValueUriEncodedInUrl
-getHashParamValueUriDecodedFromUrl
-setHashParamValueUriEncodedInWindow
-getHashParamValueUriDecodedFromWindow
-# Listener Functions
-addEventListenerHashParamBase64
-addEventListenerHashParamBoolean
-addEventListenerHashParamFloat
-addEventListenerHashParamInt
-addEventListenerHashParamJson
-addEventListenerHashParamUriEncoded
+just          # list commands
+just build    # typescript check + vite build into ./dist
+just test     # run the test suite
 ```
+
+## License
+
+MIT
