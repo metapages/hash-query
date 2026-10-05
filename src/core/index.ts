@@ -90,6 +90,27 @@ export const getHashParamValue = (
   return hashParams[key];
 };
 
+/**
+ * The `*FromHashString` getters below mirror their `*FromUrl` siblings but read
+ * a bare hash string, never a URL.
+ *
+ * Reach for these whenever the params are already in hand as a string, and
+ * ALWAYS when a value may be large. The `*FromUrl` getters call `new URL()`,
+ * and Firefox's url parser hard-caps at 1 MiB
+ * (`network.standard-url.max-length`) — past it the constructor THROWS
+ * (`TypeError: URL constructor: … is not a valid URL`) where Chrome and Safari
+ * happily parse on. So synthesizing a url out of every param in order to read
+ * one of them turns an oversize *neighbouring* param into a crash, in one
+ * browser only. Reading the hash string directly cannot hit that limit at all.
+ */
+export const getHashParamValueFromHashString = (
+  hash: string,
+  key: string
+): string | undefined => {
+  const [_, hashParams] = getUrlHashParamsFromHashString(hash);
+  return hashParams[key];
+};
+
 const isBrowser = (): boolean => {
   return typeof window !== "undefined" && typeof globalThis.location !== "undefined";
 };
@@ -385,6 +406,14 @@ export const getHashParamValueFloatFromUrl = (
   return hashParamString ? parseFloat(hashParamString) : undefined;
 };
 
+export const getHashParamValueFloatFromHashString = (
+  hash: string,
+  key: string
+): number | undefined => {
+  const hashParamString = getHashParamValueFromHashString(hash, key);
+  return hashParamString ? parseFloat(hashParamString) : undefined;
+};
+
 export const setHashParamValueFloatInWindow = (
   key: string,
   value: number | undefined,
@@ -428,6 +457,14 @@ export const getHashParamValueIntFromUrl = (
   return hashParamString ? parseInt(hashParamString) : undefined;
 };
 
+export const getHashParamValueIntFromHashString = (
+  hash: string,
+  key: string
+): number | undefined => {
+  const hashParamString = getHashParamValueFromHashString(hash, key);
+  return hashParamString ? parseInt(hashParamString) : undefined;
+};
+
 export const setHashParamValueIntInWindow = (
   key: string,
   value: number | undefined,
@@ -460,6 +497,14 @@ export const getHashParamValueBooleanFromUrl = (
   key: string
 ): boolean | undefined => {
   const hashParamString = getHashParamValue(url, key);
+  return hashParamString === "true" ? true : false;
+};
+
+export const getHashParamValueBooleanFromHashString = (
+  hash: string,
+  key: string
+): boolean | undefined => {
+  const hashParamString = getHashParamValueFromHashString(hash, key);
   return hashParamString === "true" ? true : false;
 };
 
@@ -501,6 +546,22 @@ export const getHashParamValueBase64DecodedFromUrl = (
   key: string
 ): string | undefined => {
   const valueString = getHashParamValue(url, key);
+  return valueString && valueString !== ""
+    ? stringFromBase64String(valueString)
+    : undefined;
+};
+
+/**
+ * Prefer this over the `FromUrl` form for base64 values: they are the large
+ * ones (source, blobs, encoded documents), and building a url around them just
+ * to read one is what trips Firefox's 1 MiB url cap. See
+ * `getHashParamValueFromHashString`.
+ */
+export const getHashParamValueBase64DecodedFromHashString = (
+  hash: string,
+  key: string
+): string | undefined => {
+  const valueString = getHashParamValueFromHashString(hash, key);
   return valueString && valueString !== ""
     ? stringFromBase64String(valueString)
     : undefined;
@@ -548,6 +609,16 @@ export const getHashParamValueUriDecodedFromUrl = (
   key: string
 ): string | undefined => {
   const valueString = getHashParamValue(url, key);
+  return valueString && valueString !== ""
+    ? decodeURIComponent(valueString)
+    : undefined;
+};
+
+export const getHashParamValueUriDecodedFromHashString = (
+  hash: string,
+  key: string
+): string | undefined => {
+  const valueString = getHashParamValueFromHashString(hash, key);
   return valueString && valueString !== ""
     ? decodeURIComponent(valueString)
     : undefined;
