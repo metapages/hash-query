@@ -92,6 +92,7 @@ Entry points:
 ## Core functions
 
 getUrlHashParams, getUrlHashParamsFromHashString, getHashParamValue,
+getHashParamValueFromHashString,
 getHashParamFromWindow, getHashParamsFromWindow, setHashParamInWindow,
 setHashParamValueInHashString, setHashParamValueInUrl, setHashParamsInUrl,
 deleteHashParamFromWindow, deleteHashParamFromUrl
@@ -99,10 +100,19 @@ deleteHashParamFromWindow, deleteHashParamFromUrl
 ## Typed accessors
 
 For each of JSON, Float, Int, Boolean, Base64Encoded and UriEncoded there are
-`InUrl` / `FromUrl` / `InWindow` / `FromWindow` variants, e.g.
-setHashParamValueJsonInWindow, getHashParamValueJsonFromWindow,
-setHashParamValueFloatInUrl, getHashParamValueBooleanFromWindow,
-setHashParamValueBase64EncodedInWindow, getHashParamValueUriDecodedFromUrl.
+`InUrl` / `FromUrl` / `InWindow` / `FromWindow` variants, plus a
+`FromHashString` getter, e.g. setHashParamValueJsonInWindow,
+getHashParamValueJsonFromWindow, setHashParamValueFloatInUrl,
+getHashParamValueBooleanFromWindow, setHashParamValueBase64EncodedInWindow,
+getHashParamValueUriDecodedFromUrl,
+getHashParamValueBase64DecodedFromHashString.
+
+Reading a LARGE value: use the `FromHashString` getter. The `FromUrl` getters
+call `new URL()`, and Firefox's url parser hard-caps at 1 MiB
+(`network.standard-url.max-length`) — past it the constructor THROWS, where
+Chrome and Safari parse on. So reading one param by building a url out of all
+of them crashes on an oversize NEIGHBOURING param, in Firefox only. The
+`FromHashString` getters construct no URL and have no such limit.
 
 Encoding helpers: blobToBase64String, blobFromBase64String,
 stringToBase64String, stringFromBase64String.

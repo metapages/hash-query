@@ -206,7 +206,15 @@ All functions are exported from `@metapages/hash-query`. Naming is systematic:
 - `...FromWindow` / `...InWindow` — read/write `window.location` directly.
 - `...FromUrl` / `...InUrl` — operate on a URL string or `URL` object, returning
   a new URL. Nothing is mutated in the browser.
-- `...InHashString` — operate on a bare hash string, for full manual control.
+- `...InHashString` / `...FromHashString` — operate on a bare hash string, for
+  full manual control.
+
+**Reading a large value? Use the `FromHashString` getter.** The `FromUrl`
+getters call `new URL()`, and Firefox's url parser hard-caps at 1 MiB
+(`network.standard-url.max-length`) — past it the constructor *throws*, where
+Chrome and Safari parse on. Building a url out of every param just to read one
+of them therefore crashes on an oversize *neighbouring* param, in one browser
+only. The `FromHashString` getters never construct a URL and have no such limit.
 
 ### Core
 
@@ -214,6 +222,7 @@ All functions are exported from `@metapages/hash-query`. Naming is systematic:
 getUrlHashParams(url)                          -> [preHashValue, Record<string,string>]
 getUrlHashParamsFromHashString(hash)           -> [preHashValue, Record<string,string>]
 getHashParamValue(url, key)                    -> string | undefined
+getHashParamValueFromHashString(hash, key)     -> string | undefined
 getHashParamFromWindow(key)                    -> string | undefined
 getHashParamsFromWindow()                      -> [preHashValue, Record<string,string>]
 setHashParamInWindow(key, value, opts?)
@@ -228,16 +237,16 @@ deleteHashParamFromUrl(url, key)               -> URL
 
 ### Typed accessors
 
-Each type has the same four functions:
+Each type has the same set of functions:
 
 | Type | Functions |
 | --- | --- |
 | JSON | `setHashParamValueJsonInUrl`, `getHashParamValueJsonFromUrl`, `setHashParamValueJsonInWindow`, `getHashParamValueJsonFromWindow`, `setHashParamValueJsonInHashString`, `getHashParamValueJsonFromHashString` |
-| Float | `setHashParamValueFloatInUrl`, `getHashParamValueFloatFromUrl`, `setHashParamValueFloatInWindow`, `getHashParamValueFloatFromWindow` |
-| Integer | `setHashParamValueIntInUrl`, `getHashParamValueIntFromUrl`, `setHashParamValueIntInWindow`, `getHashParamValueIntFromWindow` |
-| Boolean | `setHashParamValueBooleanInUrl`, `getHashParamValueBooleanFromUrl`, `setHashParamValueBooleanInWindow`, `getHashParamValueBooleanFromWindow` |
-| Base64 | `setHashParamValueBase64EncodedInUrl`, `getHashParamValueBase64DecodedFromUrl`, `setHashParamValueBase64EncodedInWindow`, `getHashParamValueBase64DecodedFromWindow` |
-| URI-encoded | `setHashParamValueUriEncodedInUrl`, `getHashParamValueUriDecodedFromUrl`, `setHashParamValueUriEncodedInWindow`, `getHashParamValueUriDecodedFromWindow` |
+| Float | `setHashParamValueFloatInUrl`, `getHashParamValueFloatFromUrl`, `setHashParamValueFloatInWindow`, `getHashParamValueFloatFromWindow`, `getHashParamValueFloatFromHashString` |
+| Integer | `setHashParamValueIntInUrl`, `getHashParamValueIntFromUrl`, `setHashParamValueIntInWindow`, `getHashParamValueIntFromWindow`, `getHashParamValueIntFromHashString` |
+| Boolean | `setHashParamValueBooleanInUrl`, `getHashParamValueBooleanFromUrl`, `setHashParamValueBooleanInWindow`, `getHashParamValueBooleanFromWindow`, `getHashParamValueBooleanFromHashString` |
+| Base64 | `setHashParamValueBase64EncodedInUrl`, `getHashParamValueBase64DecodedFromUrl`, `setHashParamValueBase64EncodedInWindow`, `getHashParamValueBase64DecodedFromWindow`, `getHashParamValueBase64DecodedFromHashString` |
+| URI-encoded | `setHashParamValueUriEncodedInUrl`, `getHashParamValueUriDecodedFromUrl`, `setHashParamValueUriEncodedInWindow`, `getHashParamValueUriDecodedFromWindow`, `getHashParamValueUriDecodedFromHashString` |
 
 ### Encoding helpers
 
